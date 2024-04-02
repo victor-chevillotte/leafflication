@@ -12,6 +12,18 @@ class PcvImage:
     img_name: str
 
 
+@dataclass
+class Config:
+    blur: bool
+    mask: bool
+    roi: bool
+    analyse: bool
+    pseudolandmarks: bool
+    color: bool
+    src: str
+    dst: str
+
+
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Image transformation.")
     group = parser.add_mutually_exclusive_group()
@@ -97,36 +109,52 @@ def read_images(src: List) -> list:
 def write_images(dst: str, images: List[PcvImage]) -> None:
     print("Writing images...")
     for image in images:
-        print(f"Writing image: {dst}/{image.img_name}")
+        # print(f"Writing image: {dst}/{image.img_name}")
         pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
 
 
 def main():
-    src_files = []
+
     args = parse_arguments()
-    filename = args.filename
-    src = args.src
-    print("Selected flags:")
-    print("Mask processing:", args.mask)
-    print("ROI objects processing:", args.roi)
-    print("Analyse object processing:", args.analyse)
-    print("Pseudolandmarks processing:", args.pseudolandmarks)
-    print("Color histogram processing:", args.color)
-    print("Applying image transformation...")
-    if filename:
-        print("Processing single image...", filename)
-        src_files.append(filename)
-    if src:
-        print("Source directory specified.", src)
+
+    single_image = False
+    src_files = []
+    if args.filename:
+        print("Processing single image...", args.filename)
+        single_image = True
+        src_files.append(args.filename)
+    if args.src:
+        print("Source directory specified.", args.src)
         # Read all images from the source directory
-        src_files = pcv.io.read_dataset(source_path=src)
+        src_files = pcv.io.read_dataset(source_path=args.src)
         print(f"Processing {len(src_files)} images...")
+
     dst = args.dst.removesuffix("/")
-    print("Destination directory:", dst)
+
+    config = Config(
+        blur=args.blur if not single_image else True,
+        mask=args.mask if not single_image else True,
+        roi=args.roi if not single_image else True,
+        analyse=args.analyse if not single_image else True,
+        pseudolandmarks=args.pseudolandmarks if not single_image else True,
+        color=args.color if not single_image else True,
+        src=src_files,
+        dst=dst,
+    )
+    print("Configuration:")
+    print("Source files:", config.src)
+    print("Destination directory:", config.dst)
+    print("Selected flags:")
+    print("Mask processing:", config.mask)
+    print("ROI objects processing:", config.roi)
+    print("Analyse object processing:", config.analyse)
+    print("Pseudolandmarks processing:", config.pseudolandmarks)
+    print("Color histogram processing:", config.color)
+    print("Applying image transformation...")
 
     try:
         images = read_images(src_files)
-        print(f"Images: {images}")
+        # print(f"Images: {images}")
     except Exception as e:
         print("Error reading images.", e)
         return
