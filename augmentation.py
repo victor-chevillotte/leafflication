@@ -1,6 +1,7 @@
 import sys
 import cv2
 import numpy as np
+import os
 
 def read_image_file(file_path: str) -> np.ndarray:
     # Read the image from the given file path
@@ -47,22 +48,10 @@ def distort_image(image):
     M = cv2.getPerspectiveTransform(src_points, dst_points)
     return cv2.warpPerspective(image, M, (cols,rows))
 
-def augmentation(image, file_path):
-    # Apply each augmentation and save the augmented image
-    flipped_image = flip_image(image)
-    save_augmented_image(flipped_image, file_path, 'flipped')
-    cropped_image = crop_image(image)
-    save_augmented_image(cropped_image, file_path, 'cropped')
-    rotated_image = rotate_image(image)
-    save_augmented_image(rotated_image, file_path, 'rotated')
-    sheared_image = shear_image(image)
-    save_augmented_image(sheared_image, file_path, 'sheared')
-    distorted_image = distort_image(image)
-    save_augmented_image(distorted_image, file_path, 'distorted')
-
+def display_augmented_images(original_image, flipped_image, cropped_image, rotated_image, sheared_image, distorted_image):
     # Image names for display
     names = ['Original', 'Flipped', 'Cropped', 'Rotated', 'Sheared', 'Distorted']
-    images = [image, flipped_image, cropped_image, rotated_image, sheared_image, distorted_image]
+    images = [original_image, flipped_image, cropped_image, rotated_image, sheared_image, distorted_image]
     
     # Standardizing images by adding text and padding
     standardized_images = []
@@ -93,19 +82,79 @@ def augmentation(image, file_path):
             cv2.destroyAllWindows()
             break
 
+def augmentation(image, file_path, hide_display_option):
+    # Apply each augmentation and save the augmented image
+    flipped_image = flip_image(image)
+    save_augmented_image(flipped_image, file_path, 'flipped')
+    cropped_image = crop_image(image)
+    save_augmented_image(cropped_image, file_path, 'cropped')
+    rotated_image = rotate_image(image)
+    save_augmented_image(rotated_image, file_path, 'rotated')
+    sheared_image = shear_image(image)
+    save_augmented_image(sheared_image, file_path, 'sheared')
+    distorted_image = distort_image(image)
+    save_augmented_image(distorted_image, file_path, 'distorted')
+    if not hide_display_option:
+        display_augmented_images(image, flipped_image, cropped_image, rotated_image, sheared_image, distorted_image)
+
+
+def augment_folder(folder_path: str, limit: int = None, hide_display_option: bool = False):
+    # Retrieve image files from the folder
+    image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    
+    # Apply limit if specified
+    if limit is not None:
+        image_files = image_files[:limit]
+    
+    for file_name in image_files:
+        file_path = os.path.join(folder_path, file_name)
+        try:
+            image = read_image_file(file_path)
+            augmentation(image, file_path, hide_display_option)
+        except Exception as e:
+            print(f"Error processing {file_name}: {e}")
+
+def parse_arguments(args) -> tuple:
+    folder_path = None
+    limit = None
+    image_path = None
+    hide_display_option = False
+
+    if '-f' in args:
+        folder_index = args.index('-f')
+        if folder_index + 1 < len(args):
+            folder_path = args[folder_index + 1]
+
+    if '-h' in args:
+        hide_display_index = args.index('-h')
+        hide_display_option = True
+    
+    if '-l' in args:
+        limit_index = args.index('-l')
+        if limit_index + 1 < len(args):
+            try:
+                limit = int(args[limit_index + 1])
+            except ValueError:
+                print("Limit must be a number")
+                exit(1)
+
+    # Default image path handling
+    if len(args) > 1 and not any(opt in args[1] for opt in ['-f', '-l']):
+        image_path = args[1]
+
+    return image_path, folder_path, limit, hide_display_option
 
 def main():
-    try:
-        if len(sys.argv) > 1:
-            image = read_image_file(sys.argv[1])
-            augmentation(image, sys.argv[1])
+        image_path, folder_path, limit, hide_display_option = parse_arguments(sys.argv)
+        if folder_path:
+            augment_folder(folder_path, limit, hide_display_option)
+        elif image_path:
+            image = read_image_file(image_path)
+            augmentation(image, image_path, hide_display_option)
         else:
-            print("Usage: python augmentation.py <path_to_image>")
+            print("Usage: python augmentation.py [-f /path/folder [-l number] [-h]] | [image_path] [-h]")
             exit(1)
 
-    except Exception as e:
-        print(f"Error processing image: {e}")
-        exit(1)
 
 if __name__ == "__main__":
     main()
