@@ -120,17 +120,17 @@ def parse_arguments(args) -> tuple:
     image_path = None
     hide_display_option = False
 
-    if '-f' in args:
-        folder_index = args.index('-f')
+    if '--folder' in args:
+        folder_index = args.index('--folder')
         if folder_index + 1 < len(args):
             folder_path = args[folder_index + 1]
 
-    if '-h' in args:
-        hide_display_index = args.index('-h')
+    if '--hide' in args:
+        hide_display_index = args.index('--hide')
         hide_display_option = True
     
-    if '-l' in args:
-        limit_index = args.index('-l')
+    if '--limit' in args:
+        limit_index = args.index('--limit')
         if limit_index + 1 < len(args):
             try:
                 limit = int(args[limit_index + 1])
@@ -152,7 +152,7 @@ def main():
             image = read_image_file(image_path)
             augmentation(image, image_path, hide_display_option)
         else:
-            print("Usage: python augmentation.py [-f /path/folder [-l number] [-h]] | [image_path] [-h]")
+            print("Usage: python augmentation.py [--folder /path/folder [--limit number] [--hide]] | [image_path] [--hide]")
             exit(1)
 
 
