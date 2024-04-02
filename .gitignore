@@ -216,3 +216,4 @@ pyrightconfig.json
 
 data/*
 !data/.gitkeep
+.tool-versions
