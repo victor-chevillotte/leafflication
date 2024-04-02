@@ -86,8 +86,12 @@ def augmentation(image, file_path):
 
     # Display the concatenated image
     cv2.imshow('Augmented Images', concatenated_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    wait_time = 1000
+    while cv2.getWindowProperty('Augmented Images', cv2.WND_PROP_VISIBLE) >= 1:
+        keyCode = cv2.waitKey(wait_time)
+        if (keyCode & 0xFF) == ord("q"):
+            cv2.destroyAllWindows()
+            break
 
 
 def main():
