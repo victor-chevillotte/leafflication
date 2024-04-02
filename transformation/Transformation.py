@@ -32,7 +32,7 @@ def parse_arguments() -> argparse.Namespace:
         "-dst",
         type=str,
         help="Specify the destination directory.",
-        default="./data/processed/",
+        default="data/processed/",
     )
     parser.add_argument(
         "-blur",
@@ -94,6 +94,13 @@ def read_images(src: List) -> list:
     return images
 
 
+def write_images(dst: str, images: List[PcvImage]) -> None:
+    print("Writing images...")
+    for image in images:
+        print(f"Writing image: {dst}/{image.img_name}")
+        pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
+
+
 def main():
     src_files = []
     args = parse_arguments()
@@ -114,12 +121,20 @@ def main():
         # Read all images from the source directory
         src_files = pcv.io.read_dataset(source_path=src)
         print(f"Processing {len(src_files)} images...")
+    dst = args.dst.removesuffix("/")
+    print("Destination directory:", dst)
 
     try:
         images = read_images(src_files)
         print(f"Images: {images}")
     except Exception as e:
         print("Error reading images.", e)
+        return
+    try:
+        write_images(dst, images)
+    except Exception as e:
+        print("Error writing images.", e)
+        return
 
 
 if __name__ == "__main__":
