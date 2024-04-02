@@ -1,5 +1,15 @@
-from plantcv import plantcv as pcv
 import argparse
+import numpy
+from plantcv import plantcv as pcv
+from typing import List
+from dataclasses import dataclass
+
+
+@dataclass
+class PcvImage:
+    img: numpy.ndarray
+    path: str
+    img_name: str
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -22,7 +32,7 @@ def parse_arguments() -> argparse.Namespace:
         "-dst",
         type=str,
         help="Specify the destination directory.",
-        default="./data/processed/"
+        default="./data/processed/",
     )
     parser.add_argument(
         "-blur",
@@ -76,18 +86,19 @@ def parse_arguments() -> argparse.Namespace:
     return args
 
 
+def read_images(src: List) -> list:
+    images = []
+    for img in src:
+        img, path, img_name = pcv.readimage(filename=img)
+        images.append(PcvImage(img=img, path=path, img_name=img_name))
+    return images
+
+
 def main():
+    src_files = []
     args = parse_arguments()
     filename = args.filename
     src = args.src
-    if filename:
-        print("Processing image...", filename)
-    else:
-        print("No image specified.")
-    if src:
-        print("Source directory specified.", src)
-    else:
-        print("No source directory specified.")
     print("Selected flags:")
     print("Mask processing:", args.mask)
     print("ROI objects processing:", args.roi)
@@ -95,6 +106,20 @@ def main():
     print("Pseudolandmarks processing:", args.pseudolandmarks)
     print("Color histogram processing:", args.color)
     print("Applying image transformation...")
+    if filename:
+        print("Processing single image...", filename)
+        src_files.append(filename)
+    if src:
+        print("Source directory specified.", src)
+        # Read all images from the source directory
+        src_files = pcv.io.read_dataset(source_path=src)
+        print(f"Processing {len(src_files)} images...")
+
+    try:
+        images = read_images(src_files)
+        print(f"Images: {images}")
+    except Exception as e:
+        print("Error reading images.", e)
 
 
 if __name__ == "__main__":
