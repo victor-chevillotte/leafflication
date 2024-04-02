@@ -48,12 +48,47 @@ def distort_image(image):
     return cv2.warpPerspective(image, M, (cols,rows))
 
 def augmentation(image, file_path):
-    # Apply each augmentation display resyult and save the augmented image
-    augmented_image = flip_image(image)
-    cv2.imshow("Flipped Image", augmented_image)
-    save_augmented_image(augmented_image, file_path, "flipped")
+    # Apply each augmentation and save the augmented image
+    flipped_image = flip_image(image)
+    save_augmented_image(flipped_image, file_path, 'flipped')
+    cropped_image = crop_image(image)
+    save_augmented_image(cropped_image, file_path, 'cropped')
+    rotated_image = rotate_image(image)
+    save_augmented_image(rotated_image, file_path, 'rotated')
+    sheared_image = shear_image(image)
+    save_augmented_image(sheared_image, file_path, 'sheared')
+    distorted_image = distort_image(image)
+    save_augmented_image(distorted_image, file_path, 'distorted')
+
+    # Image names for display
+    names = ['Original', 'Flipped', 'Cropped', 'Rotated', 'Sheared', 'Distorted']
+    images = [image, flipped_image, cropped_image, rotated_image, sheared_image, distorted_image]
     
-    # Skew is a specific form of shearing, so this example uses shearing to represent both.
+    # Standardizing images by adding text and padding
+    standardized_images = []
+    for img, name in zip(images, names):
+        # Calculate the new width of the image to maintain aspect ratio, leaving space for padding
+        height, width = img.shape[:2]
+        padded_img = cv2.copyMakeBorder(img, 50, 10, 10, 10, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        cv2.putText(padded_img, name, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+        standardized_images.append(padded_img)
+
+    # Concatenate images with padding between them
+    total_width = sum(image.shape[1] for image in standardized_images) + (10 * (len(standardized_images) - 1))
+    max_height = max(image.shape[0] for image in standardized_images)
+    concatenated_image = np.full((max_height, total_width, 3), 255, dtype=np.uint8)
+
+    # Place images with padding
+    current_x = 0
+    for img in standardized_images:
+        concatenated_image[:img.shape[0], current_x:current_x+img.shape[1]] = img
+        current_x += img.shape[1] + 10  # Move to the next position with 10px padding
+
+    # Display the concatenated image
+    cv2.imshow('Augmented Images', concatenated_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 def main():
     try:
