@@ -1,4 +1,4 @@
-VENV := leaffliction_venv
+VENV := venv
 
 .PHONY: setup install_lib clean fclean
 
