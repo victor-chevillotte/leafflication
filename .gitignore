@@ -219,3 +219,5 @@ data/*
 
 .vscode
 .tool-versions
+*.keras
+*.h5
