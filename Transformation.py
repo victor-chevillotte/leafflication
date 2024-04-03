@@ -1,21 +1,25 @@
 import argparse
-import numpy
+import numpy as np
 from plantcv import plantcv as pcv
 from typing import List
 from dataclasses import dataclass
+import cv2
+import matplotlib.pyplot as plt
 
 
 @dataclass
 class PcvImage:
-    img: numpy.ndarray
+    img: np.ndarray
     path: str
     img_name: str
-    blur: numpy.ndarray = None
-    mask: numpy.ndarray = None
-    roi: numpy.ndarray = None
-    analyse: numpy.ndarray = None
-    pseudolandmarks: numpy.ndarray = None
-    color: numpy.ndarray = None
+    blur: np.ndarray = None
+    mask: np.ndarray = None
+    roi: np.ndarray = None
+    analyse: np.ndarray = None
+    pseudolandmarks: np.ndarray = None
+    color: np.ndarray = None
+    grey_scale: np.ndarray = None
+    binary_mask: np.ndarray = None
 
 
 @dataclass
@@ -135,24 +139,199 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
             pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
 
 
-def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-    gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
-    binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=36, object_type="dark"
+def define_roi(image: PcvImage) -> PcvImage:
+    roi_image = image.img.copy()
+    image_width = roi_image.shape[1]
+    image_height = roi_image.shape[0]
+    roi = pcv.roi.rectangle(
+        img=image.img, x=0, y=0, h=image_height, w=image_width
     )
+    kept_mask = pcv.roi.filter(
+        mask=image.binary_mask, roi=roi, roi_type="partial"
+    )
+    colored_masks = pcv.visualize.colorize_masks(
+        masks=[kept_mask], colors=["green"]
+    )
+    roi_image = pcv.visualize.overlay_two_imgs(
+        img1=roi_image, img2=colored_masks, alpha=0.5
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, 0),
+        pt2=(0, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, 0),
+        pt2=(image_width, 0),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, image_height),
+        pt2=(image_width, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(image_width, 0),
+        pt2=(image_width, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+
+    image.roi = roi_image
+
+
+def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
+
+    image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
+    image.binary_mask = pcv.threshold.binary(
+        gray_img=image.grey_scale, threshold=60, object_type="light"
+    )
+    image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     if config.blur:
         image.blur = pcv.gaussian_blur(
-            img=binary_img, ksize=(51, 51), sigma_x=0
+            img=image.binary_mask, ksize=(3, 3), sigma_x=0
         )
     if config.mask:
         image.mask = pcv.apply_mask(
-            img=image.img, mask=binary_img, mask_color="white"
+            img=image.img, mask=image.binary_mask, mask_color="white"
         )
     if config.roi:
-        image.roi, roi_hierarchy = pcv.roi.rectangle(
-            img=image.img, x=0, y=0, h=100, w=100
+        define_roi(image)
+
+    if config.pseudolandmarks:
+        # The function returns coordinates of top, bottom, center-left, and center-right points
+        points = pcv.homology.x_axis_pseudolandmarks(
+            img=image.img, mask=image.binary_mask
         )
+        # If needed, draw landmarks on the image for visualization
+        landmark_image = np.copy(image.img)
+        colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0)]
+        for index, group in enumerate(points):
+            for point in group:
+                # Ensure 'point' is a tuple or list of length 2, representing (x, y) coordinates
+                point = (int(point[0][0]), int(point[0][1]))
+                cv2.circle(
+                    landmark_image,
+                    point,
+                    radius=5,
+                    color=colors[index],
+                    thickness=2,
+                )
+            image.pseudolandmarks = landmark_image
     return image
+
+
+def display_results(image: PcvImage) -> None:
+    # Image names for display
+    names = ["Original", "blur", "mask", "pseudo landmarks", "roi"]
+    images = [
+        image.img,
+        image.blur,
+        image.mask,
+        image.pseudolandmarks,
+        image.roi,
+    ]
+
+    # Standardizing images by adding text and padding
+    standardized_images = []
+    for img, name in zip(images, names):
+        # Check if the image is grayscale (single channel). If so, convert to RGB.
+        if len(img.shape) == 2 or img.shape[2] == 1:  # Grayscale
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        # Calculate the new width of the image to maintain aspect ratio, leaving space for padding
+        height, width = img.shape[:2]
+        padded_img = cv2.copyMakeBorder(
+            img, 50, 10, 10, 10, cv2.BORDER_CONSTANT, value=(255, 255, 255)
+        )
+        cv2.putText(
+            padded_img,
+            name,
+            (20, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 0),
+            2,
+            cv2.LINE_AA,
+        )
+        standardized_images.append(padded_img)
+
+    # Concatenate images with padding between them
+    total_width = sum(image.shape[1] for image in standardized_images) + (
+        10 * (len(standardized_images) - 1)
+    )
+    max_height = max(image.shape[0] for image in standardized_images)
+    concatenated_image = np.full(
+        (max_height, total_width, 3), 255, dtype=np.uint8
+    )
+
+    # Place images with padding
+    current_x = 0
+    for img in standardized_images:
+        concatenated_image[
+            : img.shape[0], current_x : current_x + img.shape[1]
+        ] = img
+        current_x += (
+            img.shape[1] + 10
+        )  # Move to the next position with 10px padding
+
+    # Display the concatenated image
+    cv2.imshow("Augmented Images", concatenated_image)
+    wait_time = 1000
+    while cv2.getWindowProperty("Augmented Images", cv2.WND_PROP_VISIBLE) >= 1:
+        keyCode = cv2.waitKey(wait_time)
+        if (keyCode & 0xFF) == ord("q"):
+            cv2.destroyAllWindows()
+            break
+
+
+def histogram_with_colors(img, color_spaces):
+    histograms = []
+    for color_space in color_spaces:
+        if color_space == "blue":
+            channel = img[1:, :, 0]
+        elif color_space == "blue-yellow":
+            blue_yellow = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)[:, :, 2]
+            channel = cv2.subtract(img[:, :, 2], blue_yellow)
+        elif color_space == "green":
+            channel = img[1:, :, 1]
+        elif color_space == "green-magenta":
+            green_magenta = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)[:, :, 1]
+            channel = cv2.subtract(img[:, :, 1], green_magenta)
+        elif color_space == "hue":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 0]
+        elif color_space == "lightness":
+            lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+            channel = lab[1:, :, 0]
+        elif color_space == "red":
+            channel = img[1:, :, 2]
+        elif color_space == "saturation":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 1]
+        elif color_space == "value":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 2]
+        hist = cv2.calcHist([channel], [0], None, [256], [0, 256])
+        hist = hist / np.sum(hist) * 100
+        histograms.append((color_space, hist))
+
+    return histograms
+
+
+def display_histogram(histograms):
+    plt.figure(figsize=(20, 10))
+    # show all lines on one graph
+    for color_space, hist in histograms:
+        plt.plot(hist, label=color_space)
+    plt.legend()
+    plt.show()
 
 
 def main():
@@ -203,7 +382,27 @@ def main():
     for image in images:
         apply_transformation(image, config)
     try:
-        write_images(dst, images)
+        if single_image and len(images) == 1:
+            print("Displaying results...")
+            display_results(images[0])
+            histo = histogram_with_colors(
+                img=images[0].img,
+                color_spaces=[
+                    "blue",
+                    "blue-yellow",
+                    "green",
+                    "green-magenta",
+                    "hue",
+                    "lightness",
+                    "red",
+                    "saturation",
+                    "value",
+                ],
+            )
+            display_histogram(histo)
+
+        else:
+            write_images(dst, images)
     except Exception as e:
         print("Error writing images.", e)
         return
