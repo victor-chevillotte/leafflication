@@ -142,7 +142,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     )
     if config.blur:
         image.blur = pcv.gaussian_blur(
-            image=binary_img, ksize=(51, 51), sigma_x=0
+            img=binary_img, ksize=(51, 51), sigma_x=0
         )
     if config.mask:
         image.mask = pcv.apply_mask(
@@ -200,6 +200,8 @@ def main():
     except Exception as e:
         print("Error reading images.", e)
         return
+    for image in images:
+        apply_transformation(image, config)
     try:
         write_images(dst, images)
     except Exception as e:
