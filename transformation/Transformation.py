@@ -115,8 +115,24 @@ def read_images(src: List) -> list:
 def write_images(dst: str, images: List[PcvImage]) -> None:
     print("Writing images...")
     for image in images:
+        parts = image.img_name.split(".")
         # print(f"Writing image: {dst}/{image.img_name}")
         pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
+        if image.blur is not None:
+            new_file_path = (
+                ".".join(parts[:-1]) + "_" + "blur" + "." + parts[-1]
+            )
+            pcv.print_image(img=image.blur, filename=f"{dst}/{new_file_path}")
+        if image.mask is not None:
+            new_file_path = (
+                ".".join(parts[:-1]) + "_" + "mask" + "." + parts[-1]
+            )
+            pcv.print_image(img=image.mask, filename=f"{dst}/{new_file_path}")
+        if image.roi is not None:
+            new_file_path = (
+                ".".join(parts[:-1]) + "_" + "roi" + "." + parts[-1]
+            )
+            pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
@@ -129,7 +145,9 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
             image=binary_img, ksize=(51, 51), sigma_x=0
         )
     if config.mask:
-        image.mask = pcv.apply_mask(img=image.img, mask=binary_img, mask_color='white')
+        image.mask = pcv.apply_mask(
+            img=image.img, mask=binary_img, mask_color="white"
+        )
     if config.roi:
         image.roi, roi_hierarchy = pcv.roi.rectangle(
             img=image.img, x=0, y=0, h=100, w=100
