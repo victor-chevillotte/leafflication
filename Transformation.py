@@ -4,6 +4,7 @@ from plantcv import plantcv as pcv
 from typing import List
 from dataclasses import dataclass
 import cv2
+import matplotlib.pyplot as plt
 
 
 @dataclass
@@ -232,21 +233,49 @@ def display_results(image: PcvImage) -> None:
             break
 
 
-def display_histogram(image: PcvImage) -> None:
-    # Calculate the histogram of the image
-    gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
-    binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=50, object_type="light"
-    )
-    rgb_img = cv2.cvtColor(image.img, cv2.COLOR_BGR2RGB)
-    color_histogram = pcv.analyze.color(
-        rgb_img=rgb_img, labeled_mask=binary_img, n_labels=1, colorspaces="hsv"
-    )
+def histogram_with_colors(img, color_spaces):
+    histograms = []
+    for color_space in color_spaces:
+        if color_space == "blue":
+            channel = img[1:, :, 0]
+        elif color_space == "blue-yellow":
+            blue_yellow = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)[:, :, 2]
+            channel = cv2.subtract(img[:, :, 2], blue_yellow)
+        elif color_space == "green":
+            channel = img[1:, :, 1]
+        elif color_space == "green-magenta":
+            green_magenta = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)[:, :, 1]
+            channel = cv2.subtract(img[:, :, 1], green_magenta)
+        elif color_space == "hue":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 0]
+        elif color_space == "lightness":
+            lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+            channel = lab[1:, :, 0]
+        elif color_space == "red":
+            channel = img[1:, :, 2]
+        elif color_space == "saturation":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 1]
+        elif color_space == "value":
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            channel = hsv[1:, :, 2]
+        hist = cv2.calcHist([channel], [0], None, [256], [0, 256])
+        hist = hist / np.sum(hist) * 100
+        histograms.append((color_space, hist))
 
-    # Display the histogram
-    pcv.plot_image(color_histogram)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    return histograms
+
+
+def display_histograms(histograms):
+    plt.figure(figsize=(20, 10))
+    for i, (color_space, hist) in enumerate(histograms):
+        plt.subplot(3, 3, i + 1)
+        plt.plot(hist, color="black")
+        plt.title(color_space)
+        plt.xlim([0, 256])
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
@@ -300,7 +329,22 @@ def main():
         if single_image and len(images) == 1:
             print("Displaying results...")
             display_results(images[0])
-            display_histogram(images[0])
+            histo = histogram_with_colors(
+                img=images[0].img,
+                color_spaces=[
+                    "blue",
+                    "blue-yellow",
+                    "green",
+                    "green-magenta",
+                    "hue",
+                    "lightness",
+                    "red",
+                    "saturation",
+                    "value",
+                ],
+            )
+            display_histograms(histo)
+
         else:
             write_images(dst, images)
     except Exception as e:
