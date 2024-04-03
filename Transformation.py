@@ -142,9 +142,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         gray_img=gray_img, threshold=36, object_type="light"
     )
     if config.blur:
-        image.blur = pcv.gaussian_blur(
-            img=binary_img, ksize=(51, 51), sigma_x=0
-        )
+        image.blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3), sigma_x=0)
     if config.mask:
         image.mask = pcv.apply_mask(
             img=image.img, mask=binary_img, mask_color="white"
