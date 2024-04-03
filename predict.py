@@ -24,31 +24,21 @@ def main():
             seed = seed,
             image_size = (img_height, img_width),
             batch_size = batch_size)
-        predictions = model.predict(validation_data)
+
+        normalization_layer = layers.Rescaling(1./255) # 0 - 255 to 0 - 1
+        normalized_validation_data = validation_data.map(lambda x, y: (normalization_layer(x), y))
+
+        class_names = validation_data.class_names
+        print(f"Class names : {class_names}")
+        predictions = model.predict(normalized_validation_data)
         print(f"Predictions : {predictions}")
 
-        # Initialize lists to hold actual labels and predicted labels
-        actual_labels = []
-        predicted_labels = []
-        for images, labels in validation_data:
-            # each image is a batch of images (32 images in this case)
-            for i in range(len(labels)):
-                # get the actual label image by image
-                actual_labels.append(labels[i])
-                predicted_index = np.argmax(predictions[i])
-                predicted_labels.append(predicted_index)
-                predicted_class_name = validation_data.class_names[predicted_index]
-                real_class_name = validation_data.class_names[labels[i]]
-                print("=============================")
-                print(f"Prediction : {predicted_class_name}")
-                print(f"Real class : {real_class_name}")
-      
-        confusion_matrix = tf.math.confusion_matrix(actual_labels, predicted_labels)
-        print(f"Confusion matrix:\n{confusion_matrix}")
 
         # Evaluate the model
-        score = model.evaluate(validation_data)
+        score = model.evaluate(normalized_validation_data)
         print(f"Score : {score}")
+
+        
     except Exception as e:
         print(f"An error has occured : {e}")
 
