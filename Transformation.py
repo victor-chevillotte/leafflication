@@ -139,7 +139,7 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
     binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=33, object_type="dark"
+        gray_img=gray_img, threshold=36, object_type="light"
     )
     if config.blur:
         image.blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3), sigma_x=0)
@@ -151,13 +151,34 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     #    image.roi, roi_hierarchy = pcv.roi.rectangle(
     #        img=image.img, x=0, y=0, h=100, w=100
     #    )
+
+    if config.pseudolandmarks:
+        # The function returns coordinates of top, bottom, center-left, and center-right points
+        points = pcv.homology.x_axis_pseudolandmarks(
+            img=image.img, mask=binary_img
+        )
+        # If needed, draw landmarks on the image for visualization
+        landmark_image = np.copy(image.img)
+        colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0)]
+        for index, group in enumerate(points):
+            for point in group:
+                # Ensure 'point' is a tuple or list of length 2, representing (x, y) coordinates
+                point = (int(point[0][0]), int(point[0][1]))
+                cv2.circle(
+                    landmark_image,
+                    point,
+                    radius=5,
+                    color=colors[index],
+                    thickness=2,
+                )
+            image.pseudolandmarks = landmark_image
     return image
 
 
 def display_results(image: PcvImage) -> None:
     # Image names for display
-    names = ["Original", "blur", "mask"]
-    images = [image.img, image.blur, image.mask]
+    names = ["Original", "blur", "mask", "pseudo landmarks"]
+    images = [image.img, image.blur, image.mask, image.pseudolandmarks]
 
     # Standardizing images by adding text and padding
     standardized_images = []
