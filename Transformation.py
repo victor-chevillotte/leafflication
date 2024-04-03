@@ -204,6 +204,9 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         )
     if config.roi:
         define_roi(image)
+    
+    if config.color:
+        display_histogram(histogram_with_colors(img=image.mask))
 
     if config.pseudolandmarks:
         # The function returns coordinates of top, bottom, center-left, and center-right points
@@ -291,8 +294,11 @@ def display_results(image: PcvImage) -> None:
             break
 
 
-def histogram_with_colors(img, color_spaces):
+def histogram_with_colors(img):
     histograms = []
+    color_spaces = [
+        "blue", "blue-yellow", "green", "green-magenta", "hue", "lightness", "red", "saturation", "value"
+    ]
     for color_space in color_spaces:
         if color_space == "blue":
             channel = img[1:, :, 0]
