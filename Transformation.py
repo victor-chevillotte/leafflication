@@ -139,7 +139,7 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
     binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=36, object_type="light"
+        gray_img=gray_img, threshold=50, object_type="light"
     )
     if config.blur:
         image.blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3), sigma_x=0)
