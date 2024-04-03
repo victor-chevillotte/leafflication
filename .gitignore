@@ -216,3 +216,5 @@ pyrightconfig.json
 
 data/*
 !data/.gitkeep
+
+.vscode
