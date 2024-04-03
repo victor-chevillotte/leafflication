@@ -10,6 +10,12 @@ class PcvImage:
     img: numpy.ndarray
     path: str
     img_name: str
+    blur: numpy.ndarray = None
+    mask: numpy.ndarray = None
+    roi: numpy.ndarray = None
+    analyse: numpy.ndarray = None
+    pseudolandmarks: numpy.ndarray = None
+    color: numpy.ndarray = None
 
 
 @dataclass
@@ -111,6 +117,24 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
     for image in images:
         # print(f"Writing image: {dst}/{image.img_name}")
         pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
+
+
+def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
+    gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
+    binary_img = pcv.threshold.binary(
+        gray_img=gray_img, threshold=36, object_type="dark"
+    )
+    if config.blur:
+        image.blur = pcv.gaussian_blur(
+            image=binary_img, ksize=(51, 51), sigma_x=0
+        )
+    if config.mask:
+        image.mask = pcv.apply_mask(img=image.img, mask=binary_img, mask_color='white')
+    if config.roi:
+        image.roi, roi_hierarchy = pcv.roi.rectangle(
+            img=image.img, x=0, y=0, h=100, w=100
+        )
+    return image
 
 
 def main():
