@@ -137,9 +137,9 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-    gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
+    gray_img = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
     binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=50, object_type="light"
+        gray_img=gray_img, threshold=60, object_type="light"
     )
     if config.blur:
         image.blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3), sigma_x=0)
@@ -232,6 +232,23 @@ def display_results(image: PcvImage) -> None:
             break
 
 
+def display_histogram(image: PcvImage) -> None:
+    # Calculate the histogram of the image
+    gray_img = pcv.rgb2gray_hsv(rgb_img=image.img, channel="s")
+    binary_img = pcv.threshold.binary(
+        gray_img=gray_img, threshold=50, object_type="light"
+    )
+    rgb_img = cv2.cvtColor(image.img, cv2.COLOR_BGR2RGB)
+    color_histogram = pcv.analyze.color(
+        rgb_img=rgb_img, labeled_mask=binary_img, n_labels=1, colorspaces="hsv"
+    )
+
+    # Display the histogram
+    pcv.plot_image(color_histogram)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
 def main():
 
     args = parse_arguments()
@@ -283,6 +300,7 @@ def main():
         if single_image and len(images) == 1:
             print("Displaying results...")
             display_results(images[0])
+            display_histogram(images[0])
         else:
             write_images(dst, images)
     except Exception as e:
