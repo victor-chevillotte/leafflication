@@ -33,6 +33,23 @@ def main():
         predictions = model.predict(normalized_validation_data)
         print(f"Predictions : {predictions}")
 
+                # Initialize lists to hold actual labels and predicted labels
+        actual_labels = []
+        predicted_labels = []
+        index = 0
+        for images, labels in validation_data:
+            # each image is a batch of images (32 images in this case)
+            for i in range(len(labels)):
+                # get the actual label image by image
+                predicted_index = np.argmax(predictions[index])
+                predicted_class_name = validation_data.class_names[predicted_index]
+                real_class_name = validation_data.class_names[labels[i]]
+                print("=============================")
+                print(f"Prediction : {predicted_class_name}")
+                print(f"Real class : {real_class_name}")
+                index += 1
+      
+
 
         # Evaluate the model
         score = model.evaluate(normalized_validation_data)
