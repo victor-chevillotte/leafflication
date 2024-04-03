@@ -17,6 +17,8 @@ class PcvImage:
     analyse: np.ndarray = None
     pseudolandmarks: np.ndarray = None
     color: np.ndarray = None
+    grey_scale: np.ndarray = None
+    binary_mask: np.ndarray = None
 
 
 @dataclass
@@ -137,25 +139,25 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-    gray_img = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
-    binary_img = pcv.threshold.binary(
-        gray_img=gray_img, threshold=60, object_type="light"
+
+    image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
+    image.binary_mask = pcv.threshold.binary(
+        gray_img=image.grey_scale, threshold=60, object_type="light"
     )
+    image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     if config.blur:
-        image.blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3), sigma_x=0)
+        image.blur = pcv.gaussian_blur(img=image.binary_mask, ksize=(3, 3), sigma_x=0)
     if config.mask:
         image.mask = pcv.apply_mask(
-            img=image.img, mask=binary_img, mask_color="white"
+            img=image.img, mask=image.binary_mask, mask_color="white"
         )
-    # if config.roi:
-    #    image.roi, roi_hierarchy = pcv.roi.rectangle(
-    #        img=image.img, x=0, y=0, h=100, w=100
-    #    )
+    if config.roi:
+        pass
 
     if config.pseudolandmarks:
         # The function returns coordinates of top, bottom, center-left, and center-right points
         points = pcv.homology.x_axis_pseudolandmarks(
-            img=image.img, mask=binary_img
+            img=image.img, mask=image.binary_mask
         )
         # If needed, draw landmarks on the image for visualization
         landmark_image = np.copy(image.img)
