@@ -218,3 +218,4 @@ data/*
 !data/.gitkeep
 
 .vscode
+.tool-versions
