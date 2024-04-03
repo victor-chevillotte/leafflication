@@ -147,7 +147,9 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     if config.blur:
-        image.blur = pcv.gaussian_blur(img=image.binary_mask, ksize=(3, 3), sigma_x=0)
+        image.blur = pcv.gaussian_blur(
+            img=image.binary_mask, ksize=(3, 3), sigma_x=0
+        )
     if config.mask:
         image.mask = pcv.apply_mask(
             img=image.img, mask=image.binary_mask, mask_color="white"
@@ -269,14 +271,12 @@ def histogram_with_colors(img, color_spaces):
     return histograms
 
 
-def display_histograms(histograms):
+def display_histogram(histograms):
     plt.figure(figsize=(20, 10))
-    for i, (color_space, hist) in enumerate(histograms):
-        plt.subplot(3, 3, i + 1)
-        plt.plot(hist, color="black")
-        plt.title(color_space)
-        plt.xlim([0, 256])
-    plt.tight_layout()
+    # show all lines on one graph
+    for color_space, hist in histograms:
+        plt.plot(hist, label=color_space)
+    plt.legend()
     plt.show()
 
 
@@ -345,7 +345,7 @@ def main():
                     "value",
                 ],
             )
-            display_histograms(histo)
+            display_histogram(histo)
 
         else:
             write_images(dst, images)
