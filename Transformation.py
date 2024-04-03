@@ -139,6 +139,54 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
             pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
 
 
+def define_roi(image: PcvImage) -> PcvImage:
+    roi_image = image.img.copy()
+    image_width = roi_image.shape[1]
+    image_height = roi_image.shape[0]
+    roi = pcv.roi.rectangle(
+        img=image.img, x=0, y=0, h=image_height, w=image_width
+    )
+    kept_mask = pcv.roi.filter(
+        mask=image.binary_mask, roi=roi, roi_type="partial"
+    )
+    colored_masks = pcv.visualize.colorize_masks(
+        masks=[kept_mask], colors=["green"]
+    )
+    roi_image = pcv.visualize.overlay_two_imgs(
+        img1=roi_image, img2=colored_masks, alpha=0.5
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, 0),
+        pt2=(0, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, 0),
+        pt2=(image_width, 0),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(0, image_height),
+        pt2=(image_width, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+    cv2.line(
+        img=roi_image,
+        pt1=(image_width, 0),
+        pt2=(image_width, image_height),
+        color=(255, 0, 0),
+        thickness=10,
+    )
+
+    image.roi = roi_image
+
+
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
 
     image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
@@ -155,7 +203,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
             img=image.img, mask=image.binary_mask, mask_color="white"
         )
     if config.roi:
-        pass
+        define_roi(image)
 
     if config.pseudolandmarks:
         # The function returns coordinates of top, bottom, center-left, and center-right points
@@ -182,8 +230,14 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
 
 def display_results(image: PcvImage) -> None:
     # Image names for display
-    names = ["Original", "blur", "mask", "pseudo landmarks"]
-    images = [image.img, image.blur, image.mask, image.pseudolandmarks]
+    names = ["Original", "blur", "mask", "pseudo landmarks", "roi"]
+    images = [
+        image.img,
+        image.blur,
+        image.mask,
+        image.pseudolandmarks,
+        image.roi,
+    ]
 
     # Standardizing images by adding text and padding
     standardized_images = []
