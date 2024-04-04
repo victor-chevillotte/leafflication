@@ -84,7 +84,7 @@ def main():
         
         model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
         model.summary()
-        epochs=10
+        epochs=6
         history = model.fit(
             normalized_train_data,
             validation_data=normalized_validation_data,
