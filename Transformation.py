@@ -137,6 +137,25 @@ def write_images(dst: str, images: List[PcvImage]) -> None:
                 ".".join(parts[:-1]) + "_" + "roi" + "." + parts[-1]
             )
             pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
+        if image.analyse is not None:
+            new_file_path = (
+                ".".join(parts[:-1]) + "_" + "analyse" + "." + parts[-1]
+            )
+            pcv.print_image(
+                img=image.analyse, filename=f"{dst}/{new_file_path}"
+            )
+        if image.pseudolandmarks is not None:
+            new_file_path = (
+                ".".join(parts[:-1])
+                + "_"
+                + "pseudolandmarks"
+                + "."
+                + parts[-1]
+            )
+            pcv.print_image(
+                img=image.pseudolandmarks, filename=f"{dst}/{new_file_path}"
+            )
+    print("Images written.")
 
 
 def define_roi(image: PcvImage) -> PcvImage:
@@ -185,10 +204,10 @@ def define_roi(image: PcvImage) -> PcvImage:
     )
 
     image.roi = roi_image
+    return kept_mask
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-
     image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
     image.binary_mask = pcv.threshold.binary(
         gray_img=image.grey_scale, threshold=60, object_type="light"
@@ -203,10 +222,17 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
             img=image.img, mask=image.binary_mask, mask_color="white"
         )
     if config.roi:
-        define_roi(image)
-    
+        roi_mask = define_roi(image)
+
     if config.color:
-        display_histogram(histogram_with_colors(img=image.mask))
+        color_histogram = pcv.analyze.color(
+            rgb_img=image.img,
+            labeled_mask=roi_mask,
+            label="default",
+        )
+        # display_histogram(histogram_with_colors(img=image.mask))
+        image.color = color_histogram.data
+        print(f"Color histogram: {color_histogram}")
 
     if config.pseudolandmarks:
         # The function returns coordinates of top, bottom, center-left, and center-right points
@@ -228,18 +254,26 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
                     thickness=2,
                 )
             image.pseudolandmarks = landmark_image
+
+    if config.analyse:
+        shape_image = pcv.analyze.size(
+            img=image.img, labeled_mask=roi_mask, n_labels=1
+        )
+        image.analyse = shape_image
+
     return image
 
 
 def display_results(image: PcvImage) -> None:
     # Image names for display
-    names = ["Original", "blur", "mask", "pseudo landmarks", "roi"]
+    names = ["Original", "blur", "mask", "pseudo landmarks", "roi", "analyse"]
     images = [
         image.img,
         image.blur,
         image.mask,
         image.pseudolandmarks,
         image.roi,
+        image.analyse,
     ]
 
     # Standardizing images by adding text and padding
@@ -297,7 +331,15 @@ def display_results(image: PcvImage) -> None:
 def histogram_with_colors(img):
     histograms = []
     color_spaces = [
-        "blue", "blue-yellow", "green", "green-magenta", "hue", "lightness", "red", "saturation", "value"
+        "blue",
+        "blue-yellow",
+        "green",
+        "green-magenta",
+        "hue",
+        "lightness",
+        "red",
+        "saturation",
+        "value",
     ]
     for color_space in color_spaces:
         if color_space == "blue":
