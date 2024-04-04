@@ -82,7 +82,7 @@ def main():
         ])
         # check dropout layers
         
-        model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
+        model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
         model.summary()
         epochs=6
         history = model.fit(
