@@ -5,7 +5,7 @@ VENV := venv
 all: setup install_lib
 
 setup:
-	python3.12 -m venv $(VENV)
+	python3 -m venv $(VENV)
 	@echo "Virtual environment $(VENV) created."
 
 install_lib:
