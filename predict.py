@@ -107,8 +107,12 @@ def predict_directory(model, dir_path, class_names):
     img_height = 256
     img_width = 256
     batch_size = 32
+    seed = 123
     data_to_predict = tf.keras.utils.image_dataset_from_directory(
         dir_path,
+        validation_split=0.2,
+        subset="validation",
+        seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
         shuffle=False,
