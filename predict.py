@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
 
+
 def parse_args(args):
     if args.m:
         model_path = args.m
@@ -26,6 +27,7 @@ def parse_args(args):
         dir_path = None
     return model_path, image_path, dir_path
 
+
 def predict_image(model, image_path, class_names):
     # Load the image
     img_height = 256
@@ -42,6 +44,7 @@ def predict_image(model, image_path, class_names):
     print(f"Predictions : {predictions}")
     print(f"Score : {score}")
     print(f"Predicted class : {class_names[np.argmax(score)]}")
+
 
 def predict_directory(model, dir_path):
     seed = 123
@@ -75,8 +78,17 @@ def main():
         args = parser.parse_args()
         model_path, image_path, dir_path = parse_args(args)
 
-        class_names = ['Apple_Black_rot', 'Apple_healthy', 'Apple_rust', 'Apple_scab', 'Grape_Black_rot', 'Grape_Esca', 'Grape_healthy', 'Grape_spot']
-        
+        class_names = [
+            "Apple_Black_rot",
+            "Apple_healthy",
+            "Apple_rust",
+            "Apple_scab",
+            "Grape_Black_rot",
+            "Grape_Esca",
+            "Grape_healthy",
+            "Grape_spot",
+        ]
+
         # Load the model
         model = load_model(model_path)
 
