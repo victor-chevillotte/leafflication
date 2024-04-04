@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from augmentation import read_image_file, flip_image, rotate_image, save_augmented_image
 from distribution import get_images_count
+from Transformation import Config, write_images, apply_transformation, read_images
 import shutil
 
 
@@ -181,6 +182,41 @@ def augment_data(dir_path, img_per_class=600):
     return img_per_class
 
 
+def transform_data(dir_path):
+    config = Config(
+        blur=False,
+        mask=True,
+        roi=False,
+        analyse=False,
+        pseudolandmarks=False,
+        color=False,
+        src="",
+        dst="",
+    )
+    images_count = get_images_count(dir_path)
+    for img_class in images_count:
+        for i in range(img_class["count"]):
+            try:
+                image_path = f"{img_class['path']}/image ({i + 1}).JPG"
+                print(f"Transforming {image_path}")
+                image = read_images([image_path])
+                print("Image read")
+                if image is None:
+                    raise Exception("Image not found")
+                transformed_images = apply_transformation(image[0], config)
+                print("Transformation applied")
+                os.remove(image_path)
+                print("Original image deleted")
+                write_images(
+                    f"{img_class['path']}/image ({i + 1})_mask.JPG",
+                    [transformed_images],
+                )
+                print("Images written")
+            except Exception as e:
+                print(f"Error processing {image_path}: {e}")
+                exit(1)
+
+
 def main():
     try:
         parser = argparse.ArgumentParser(description="Prediction")
@@ -207,6 +243,8 @@ def main():
         print(f"The folder {dir_path} has been copied to {dir_for_training}")
 
         min_img_per_class = augment_data(dir_for_training, img_per_class=600)
+        transform_data(dir_for_training)
+        exit(0)
         normalized_train_data, normalized_validation_data, class_names = get_data(
             dir_for_training,
             batch_size,
