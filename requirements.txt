@@ -1,4 +1,3 @@
-PyQt5==5.15.10
 opencv-python-headless
 argparse==1.4.0
 pandas==2.2.1
