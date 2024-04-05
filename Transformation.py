@@ -225,7 +225,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         roi_mask = define_roi(image)
 
     if config.color:
-        histogram_with_colors(image.img)
+        histogram_with_colors(image)
 
     if config.pseudolandmarks:
         # The function returns coordinates of top, bottom, center-left, and center-right points
@@ -266,6 +266,7 @@ def display_results(image: PcvImage) -> None:
         "pseudo landmarks",
         "roi",
         "analyse",
+        "color histograms"
     ]
     images = [
         image.img,
@@ -274,6 +275,7 @@ def display_results(image: PcvImage) -> None:
         image.pseudolandmarks,
         image.roi,
         image.analyse,
+        image.color
     ]
 
     # Standardizing images by adding text and padding
@@ -328,33 +330,41 @@ def display_results(image: PcvImage) -> None:
             break
 
 
-def histogram_with_colors(image: np.ndarray):
+def histogram_with_colors(pcv_image: PcvImage):
+
+    histograms = []
+    image = pcv_image.img
+
     # Convert the image to different color spaces
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    rgb = pcv_image.img
 
     lab = "lightness, green-magenta, blue-yellow"
 
     # Define the color spaces you want to analyze
     color_spaces = [
-        ("blue", cv2.COLOR_BGR2RGB, rgb, 2),
+        ("blue", None, rgb, 2),
         ("blue-yellow", cv2.COLOR_BGR2LAB, lab, 2),
-        ("green", cv2.COLOR_BGR2RGB, rgb, 1),
+        ("green", None, rgb, 1),
         ("green-magenta", cv2.COLOR_BGR2LAB, lab, 1),
         ("hue", cv2.COLOR_BGR2HSV, hsv, 0),
         ("lightness", cv2.COLOR_BGR2LAB, lab, 0),
-        ("red", cv2.COLOR_BGR2RGB, rgb, 0),
+        ("red", None, rgb, 0),
         ("saturation", cv2.COLOR_BGR2HSV, hsv, 1),
         ("value", cv2.COLOR_BGR2HSV, hsv, 2),
     ]
 
     # Plot the pixel intensity distribution
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
+    canvas = fig.canvas
 
     for color_space, conversion, channel, channel_index in color_spaces:
+        
         # Convert image to desired color space
-        converted_image = cv2.cvtColor(image, conversion)
+        converted_image = image
+        if conversion:
+            converted_image = cv2.cvtColor(image, conversion)
 
         # Extract the specified channel
         extracted_channel = converted_image[:, :, channel_index]
@@ -368,12 +378,16 @@ def histogram_with_colors(image: np.ndarray):
 
         # Plot histogram
         plt.plot(hist, label=color_space)
+        histograms.append((color_space, hist))
 
     plt.title("Pixel Intensity Distribution for Different Color Spaces")
     plt.xlabel("Pixel Intensity")
     plt.ylabel("Proportion of Pixels (%)")
     plt.legend()
     plt.grid(True)
+    canvas.draw()
+    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+    pcv_image.color = image_flat.reshape(*reversed(canvas.get_width_height()), 3)
     plt.show()
 
 
@@ -437,22 +451,6 @@ def main():
         if single_image and len(images) == 1:
             print("Displaying results...")
             display_results(images[0])
-            histo = histogram_with_colors(
-                img=images[0].img,
-                color_spaces=[
-                    "blue",
-                    "blue-yellow",
-                    "green",
-                    "green-magenta",
-                    "hue",
-                    "lightness",
-                    "red",
-                    "saturation",
-                    "value",
-                ],
-            )
-            display_histogram(histo)
-
         else:
             write_images(dst, images)
     except Exception as e:
