@@ -9,9 +9,10 @@ from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from augmentation import read_image_file, flip_image, rotate_image, save_augmented_image
-from distribution import get_images_count
+from distribution import get_images_count, create_bar_chart, create_pie_chart, create_text
 from Transformation import Config, write_images, apply_transformation, read_images
 import shutil
+import subprocess
 
 
 def parse_args(args):
@@ -54,6 +55,18 @@ def parse_args(args):
             raise Exception("Percents of validation data must be less than 50")
     else:
         validation_data_percents = 20
+    if args.a:
+        img_per_class = args.a
+        if img_per_class < 1:
+            raise Exception("Minimum images per class must be greater than 0")
+        elif img_per_class > 2000:
+            raise Exception("Minimum images per class must be less than 2000")
+    else:
+        img_per_class = 600
+    if args.t:
+        transform_data = False
+    else:
+        transform_data = True
     return (
         dir_path,
         model_name,
@@ -61,6 +74,8 @@ def parse_args(args):
         batch_size,
         seed,
         validation_data_percents / 100,
+        img_per_class,
+        transform_data
     )
 
 
@@ -132,11 +147,9 @@ def augmentation(image, file_path, augmentation_options):
     if "flipped" in augmentation_options:
         flipped_image = flip_image(image)
         save_augmented_image(flipped_image, file_path, "flipped")
-        # print(f"Flipped image saved to {file_path}")
     if "rotated" in augmentation_options:
         rotated_image = rotate_image(image)
         save_augmented_image(rotated_image, file_path, "rotated")
-        # print(f"Rotated image saved to {file_path}")
     # distorted_image = distort_image(image)
     # save_augmented_image(distorted_image, file_path, "distorted")
 
@@ -146,7 +159,7 @@ def augment_class(dir_path, count, img_per_class, augmentation_options):
     additional_images = img_per_class - count
     while j < additional_images:
         for i in range(len(augmentation_options)):
-            for y in range(count + 1):
+            for y in range(count):
                 image_path = f"{dir_path}/image ({y + 1}).JPG"
                 image = read_image_file(image_path)
                 augmentation(image, image_path, augmentation_options[i])
@@ -155,8 +168,7 @@ def augment_class(dir_path, count, img_per_class, augmentation_options):
                     return j
 
 
-def augment_data(dir_path, img_per_class=600):
-    augmentation_options = ["flipped", "rotated"]
+def augment_data(dir_path, augmentation_options, img_per_class=600):
     images_count = get_images_count(dir_path)
     counts = [dir["count"] for dir in images_count]
     if len(counts) <= 0:
@@ -165,20 +177,22 @@ def augment_data(dir_path, img_per_class=600):
     if img_per_class is None:
         img_per_class = max(counts)
     if img_per_class > min(counts) * len(augmentation_options):
-        print(f"Each class will have {img_per_class} images")
+        print(f"Each class will have {img_per_class} images minimum")
         print(
             f"But minimum images per class is {min(counts)} images and we have {len(augmentation_options)} augmentation options"
         )
-        img_per_class = min(counts) * len(augmentation_options)
+        print(f"So we will have {min(counts) * len(augmentation_options)} images minimum per class")
+        img_per_class = min(counts) * (len(augmentation_options) + 1)
 
     for img in images_count:
         if img["count"] < img_per_class:
-            print(f"Augmenting {img['name']} class")
+            print(f"Augmenting {img['name']} class, {img['count']} images")
             nb_img_added = augment_class(
                 img["path"], img["count"], img_per_class, augmentation_options
             )
             print(f"{nb_img_added} images added to {img['name']} class")
-    print(f"Each class has now {img_per_class} images")
+    print(f"Each class has now {img_per_class} images minimum")
+    print()
     return img_per_class
 
 
@@ -194,28 +208,68 @@ def transform_data(dir_path):
         dst="",
     )
     images_count = get_images_count(dir_path)
-    for img_class in images_count:
-        for i in range(img_class["count"]):
-            try:
-                image_path = f"{img_class['path']}/image ({i + 1}).JPG"
-                print(f"Transforming {image_path}")
-                image = read_images([image_path])
-                print("Image read")
-                if image is None:
-                    raise Exception("Image not found")
-                transformed_images = apply_transformation(image[0], config)
-                print("Transformation applied")
-                os.remove(image_path)
-                print("Original image deleted")
-                write_images(
-                    f"{img_class['path']}/image ({i + 1})_mask.JPG",
-                    [transformed_images],
-                )
-                print("Images written")
-            except Exception as e:
-                print(f"Error processing {image_path}: {e}")
-                exit(1)
+    for img_class in images_count: # for each class
+        print(f"Transforming {img_class['name']} class, {img_class['count']} images")
+        error_transforming_count = 0
+        dir_path = img_class["path"]
+        for element in os.listdir(dir_path): # get all files in the directory
+            file_path = os.path.join(dir_path, element) # build the path of the file
+            if os.path.isfile(file_path) and file_path.endswith(".JPG"): # check if the file is a .JPG file
+                try:
+                    image_path = file_path
+                    image = read_images([image_path])
+                    if image is None:
+                        raise Exception(f"Image {image_path} not found")
+                    try:
+                        transformed_images = apply_transformation(image[0], config)
+                    except Exception as e:
+                        error_transforming_count += 1
+                    if os.path.exists(image_path):
+                        try:
+                            subprocess.run(["rm", "-f", image_path], check=True)
+                        except subprocess.CalledProcessError as e:
+                            print(f"Error deleting {image_path}: {e}")
+                    try:
+                        if transformed_images:
+                            write_images(
+                                f"{img_class['path']}",
+                                [transformed_images],
+                            )
+                        else:
+                            print(f"Error transforming {image_path}")
+                    except Exception as e:
+                        print(f"Error writing {image_path}: {e}")
+                except Exception as e:
+                    print(f"Error transform_data {image_path}: {e}")
+        if error_transforming_count > 0:
+            print(f"Error transforming with {error_transforming_count} images")
+    print()
+    print()
 
+
+def display_histogram_terminal(dir_path):
+    try:
+        images_count = get_images_count(dir_path)
+        values = [dir["count"] for dir in images_count]
+        names = [dir["name"] for dir in images_count]
+        if len(values) != len(names):
+            raise Exception("Values and names must have the same length")
+        if len(values) <= 0 or len(names) <= 0:
+            raise Exception("No data found")
+        max_value = max(values)
+        hist_height = 20
+        char_for_bar = '='
+        print(f"For training, we will use this data :")
+        print()
+        for i in range(len(values)):
+            bar_length = int((values[i] / max_value) * hist_height)
+            bar = char_for_bar * bar_length
+            padding = ' ' * (hist_height - bar_length)
+            print(f'{bar}{padding} : {values[i]} - {names[i]}')
+        print()
+        print()
+    except Exception as e:
+        print(f"Error display_histogram_terminal: {e}")
 
 def main():
     try:
@@ -226,25 +280,37 @@ def main():
         parser.add_argument("--b", type=int, help="Batch size")
         parser.add_argument("--s", type=int, help="Seed")
         parser.add_argument("--v", type=int, help="Percents of validation data")
+        parser.add_argument("--a", type=int, help="Augment data with a minimum of images per class")
+        parser.add_argument("--t", action='store_true', help="Don't transform data")
         args = parser.parse_args()
-        dir_path, model_name, epochs, batch_size, seed, validation_data_percents = (
+        dir_path, model_name, epochs, batch_size, seed, validation_data_percents, img_per_class, transform_data_flag = (
             parse_args(args)
         )
         img_height = 256
         img_width = 256
 
+        # Data augmentation
+        augmentation_options = ["flipped", "rotated"]
         dir_for_training = "trainingData"
         if os.path.exists(dir_for_training):
-            # raise Exception(f"The folder {dir_for_training} already exists")
             print(f"The folder {dir_for_training} already exists")
             shutil.rmtree(dir_for_training)
             print(f"The folder {dir_for_training} has been deleted")
         shutil.copytree(dir_path, dir_for_training)
         print(f"The folder {dir_path} has been copied to {dir_for_training}")
+        print()
 
-        min_img_per_class = augment_data(dir_for_training, img_per_class=600)
-        transform_data(dir_for_training)
-        exit(0)
+        print("----- Augmenting data -----")
+        min_img_per_class = augment_data(dir_for_training, augmentation_options, img_per_class)
+        
+        # Data transformation
+        if transform_data_flag and len(augmentation_options) > 0:
+            print("----- Transforming data -----")
+            transform_data(dir_for_training)
+        
+        display_histogram_terminal(dir_for_training)
+
+        # Training
         normalized_train_data, normalized_validation_data, class_names = get_data(
             dir_for_training,
             batch_size,
@@ -284,7 +350,7 @@ def main():
             epochs=epochs,
         )
 
-        display_history(history, epochs)
+        # display_history(history, epochs)
 
         model.save(f"{model_name}.keras")
     except Exception as e:

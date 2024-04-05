@@ -117,25 +117,19 @@ def read_images(src: List) -> list:
 
 
 def write_images(dst: str, images: List[PcvImage]) -> None:
-    print("Writing images...")
+    # print("Writing images...")
     for image in images:
         parts = image.img_name.split(".")
         # print(f"Writing image: {dst}/{image.img_name}")
-        pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
+        # pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
         if image.blur is not None:
-            new_file_path = (
-                ".".join(parts[:-1]) + "_" + "blur" + "." + parts[-1]
-            )
+            new_file_path = ".".join(parts[:-1]) + "_" + "blur" + "." + parts[-1]
             pcv.print_image(img=image.blur, filename=f"{dst}/{new_file_path}")
         if image.mask is not None:
-            new_file_path = (
-                ".".join(parts[:-1]) + "_" + "mask" + "." + parts[-1]
-            )
+            new_file_path = ".".join(parts[:-1]) + "_" + "mask" + "." + parts[-1]
             pcv.print_image(img=image.mask, filename=f"{dst}/{new_file_path}")
         if image.roi is not None:
-            new_file_path = (
-                ".".join(parts[:-1]) + "_" + "roi" + "." + parts[-1]
-            )
+            new_file_path = ".".join(parts[:-1]) + "_" + "roi" + "." + parts[-1]
             pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
 
 
@@ -143,15 +137,9 @@ def define_roi(image: PcvImage) -> PcvImage:
     roi_image = image.img.copy()
     image_width = roi_image.shape[1]
     image_height = roi_image.shape[0]
-    roi = pcv.roi.rectangle(
-        img=image.img, x=0, y=0, h=image_height, w=image_width
-    )
-    kept_mask = pcv.roi.filter(
-        mask=image.binary_mask, roi=roi, roi_type="partial"
-    )
-    colored_masks = pcv.visualize.colorize_masks(
-        masks=[kept_mask], colors=["green"]
-    )
+    roi = pcv.roi.rectangle(img=image.img, x=0, y=0, h=image_height, w=image_width)
+    kept_mask = pcv.roi.filter(mask=image.binary_mask, roi=roi, roi_type="partial")
+    colored_masks = pcv.visualize.colorize_masks(masks=[kept_mask], colors=["green"])
     roi_image = pcv.visualize.overlay_two_imgs(
         img1=roi_image, img2=colored_masks, alpha=0.5
     )
@@ -191,13 +179,11 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
 
     image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
     image.binary_mask = pcv.threshold.binary(
-        gray_img=image.grey_scale, threshold=60, object_type="light"
+        gray_img=image.grey_scale, threshold=35, object_type="light"
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     if config.blur:
-        image.blur = pcv.gaussian_blur(
-            img=image.binary_mask, ksize=(3, 3), sigma_x=0
-        )
+        image.blur = pcv.gaussian_blur(img=image.binary_mask, ksize=(3, 3), sigma_x=0)
     if config.mask:
         image.mask = pcv.apply_mask(
             img=image.img, mask=image.binary_mask, mask_color="white"
@@ -267,19 +253,13 @@ def display_results(image: PcvImage) -> None:
         10 * (len(standardized_images) - 1)
     )
     max_height = max(image.shape[0] for image in standardized_images)
-    concatenated_image = np.full(
-        (max_height, total_width, 3), 255, dtype=np.uint8
-    )
+    concatenated_image = np.full((max_height, total_width, 3), 255, dtype=np.uint8)
 
     # Place images with padding
     current_x = 0
     for img in standardized_images:
-        concatenated_image[
-            : img.shape[0], current_x : current_x + img.shape[1]
-        ] = img
-        current_x += (
-            img.shape[1] + 10
-        )  # Move to the next position with 10px padding
+        concatenated_image[: img.shape[0], current_x : current_x + img.shape[1]] = img
+        current_x += img.shape[1] + 10  # Move to the next position with 10px padding
 
     # Display the concatenated image
     cv2.imshow("Augmented Images", concatenated_image)

@@ -13,6 +13,7 @@ install_lib:
 	@echo "Installed lib."
 
 clean:
+	rm -rf __pycache__
 	@echo "Clean ok."
 
 fclean: clean
