@@ -321,9 +321,9 @@ def display_results(image: PcvImage) -> None:
         )  # Move to the next position with 10px padding
 
     # Display the concatenated image
-    cv2.imshow("Augmented Images", concatenated_image)
+    cv2.imshow("Transformed Images", concatenated_image)
     wait_time = 1000
-    while cv2.getWindowProperty("Augmented Images", cv2.WND_PROP_VISIBLE) >= 1:
+    while cv2.getWindowProperty("Transformed Images", cv2.WND_PROP_VISIBLE) >= 1:
         keyCode = cv2.waitKey(wait_time)
         if (keyCode & 0xFF) == ord("q"):
             cv2.destroyAllWindows()
