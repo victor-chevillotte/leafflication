@@ -1,9 +1,6 @@
 import argparse
 import os
-# import cv2
-import numpy as np
 import matplotlib.pyplot as plt
-from utils import plt_to_numpy_image, cv2_imshow_wrapper
 
 # import cv2
 # import numpy as np
