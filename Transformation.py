@@ -220,14 +220,20 @@ def define_roi(image: PcvImage) -> PcvImage:
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-    image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
-    image.binary_mask = pcv.threshold.binary(
-        gray_img=image.grey_scale, threshold=35, object_type="light"
+    # image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="c")
+    # image.grey_scale = pcv.rgb2gray_hsv(rgb_img=image.img, channel="h")
+    image.grey_scale = pcv.rgb2gray_lab(rgb_img=image.img, channel="a")
+    image.blur = pcv.gaussian_blur(
+        img=image.grey_scale, ksize=(5, 5), sigma_x=0
+    )
+    # image.binary_mask = pcv.threshold.otsu(
+    #     gray_img=image.blur, object_type="light"
+    # )
+    image.binary_mask = pcv.threshold.otsu(
+        gray_img=image.blur, object_type="dark"
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
-    image.blur = pcv.gaussian_blur(
-        img=image.binary_mask, ksize=(3, 3), sigma_x=0
-    )
+    image.blur = image.binary_mask
     image.mask = pcv.apply_mask(
         img=image.img, mask=image.binary_mask, mask_color="white"
     )
@@ -388,7 +394,6 @@ def histogram_with_colors(pcv_image: PcvImage) -> np.ndarray:
 
         # Plot histogram
         plt.plot(hist, label=color_space)
-        # histograms.append((color_space, hist))
 
     plt.title("Pixel Intensity Distribution for Different Color Spaces")
     plt.xlabel("Pixel Intensity")
@@ -412,7 +417,6 @@ def main():
         src_files.append(args.filename)
     if args.src:
         print("Source directory specified.", args.src)
-        # Read all images from the source directory
         src_files = pcv.io.read_dataset(source_path=args.src)
         print(f"Processing {len(src_files)} images...")
 
@@ -430,16 +434,6 @@ def main():
         dst=dst,
         single_image=single_image,
     )
-    print("Configuration:")
-    print("Source files:", config.src)
-    print("Destination directory:", config.dst)
-    print("Selected flags:")
-    print("Blur processing:", config.blur)
-    print("Mask processing:", config.mask)
-    print("ROI objects processing:", config.roi)
-    print("Analyse object processing:", config.analyse)
-    print("Pseudolandmarks processing:", config.pseudolandmarks)
-    print("Color histogram processing:", config.color)
     print("Applying image transformation...")
 
     try:
