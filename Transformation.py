@@ -5,7 +5,10 @@ from typing import List
 from dataclasses import dataclass
 import cv2
 import matplotlib.pyplot as plt
-from utils import plt_to_numpy_image
+from utils import plt_to_numpy_image, pyqt_setup
+
+
+pyqt_setup()
 
 
 @dataclass
