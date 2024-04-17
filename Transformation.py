@@ -108,6 +108,14 @@ def parse_arguments() -> argparse.Namespace:
         help="Apply color histogram processing.",
         default=False,
     )
+    parser.add_argument(
+        "--all",
+        type=bool,
+        action=argparse.BooleanOptionalAction,
+        dest="all",
+        help="Apply all processing.",
+        default=False,
+    )
     args = parser.parse_args()
     return args
 
@@ -120,35 +128,32 @@ def read_images(src: List) -> list:
     return images
 
 
-def write_images(dst: str, images: List[PcvImage]) -> None:
-    # print("Writing images...")
+def write_images(dst: str, images: List[PcvImage], config: Config) -> None:
     for image in images:
         parts = image.img_name.split(".")
-        # print(f"Writing image: {dst}/{image.img_name}")
-        # pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
-        if image.blur is not None:
+        if config.blur:
             new_file_path = (
                 ".".join(parts[:-1]) + "_" + "blur" + "." + parts[-1]
             )
             pcv.print_image(img=image.blur, filename=f"{dst}/{new_file_path}")
-        if image.mask is not None:
+        if config.mask:
             new_file_path = (
                 ".".join(parts[:-1]) + "_" + "mask" + "." + parts[-1]
             )
             pcv.print_image(img=image.mask, filename=f"{dst}/{new_file_path}")
-        if image.roi is not None:
+        if config.roi:
             new_file_path = (
                 ".".join(parts[:-1]) + "_" + "roi" + "." + parts[-1]
             )
             pcv.print_image(img=image.roi, filename=f"{dst}/{new_file_path}")
-        if image.analyse is not None:
+        if config.analyse:
             new_file_path = (
                 ".".join(parts[:-1]) + "_" + "analyse" + "." + parts[-1]
             )
             pcv.print_image(
                 img=image.analyse, filename=f"{dst}/{new_file_path}"
             )
-        if image.pseudolandmarks is not None:
+        if config.pseudolandmarks:
             new_file_path = (
                 ".".join(parts[:-1])
                 + "_"
@@ -217,48 +222,42 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         gray_img=image.grey_scale, threshold=35, object_type="light"
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
-    if config.blur:
-        image.blur = pcv.gaussian_blur(
+    image.blur = pcv.gaussian_blur(
             img=image.binary_mask, ksize=(3, 3), sigma_x=0
         )
-    if config.mask:
-        image.mask = pcv.apply_mask(
+    image.mask = pcv.apply_mask(
             img=image.img, mask=image.binary_mask, mask_color="white"
         )
-    if config.roi:
-        roi_mask = define_roi(image)
+    roi_mask = define_roi(image)
 
-    if config.color:
-        histogram_with_colors(image)
+    image.color = histogram_with_colors(image)
 
-    if config.pseudolandmarks:
-        # The function returns coordinates of
-        # top, bottom, center-left, and center-right points
-        points = pcv.homology.x_axis_pseudolandmarks(
-            img=image.img, mask=image.binary_mask
-        )
-        # If needed, draw landmarks on the image for visualization
-        landmark_image = np.copy(image.img)
-        colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0)]
-        for index, group in enumerate(points):
-            for point in group:
-                # Ensure 'point' is a tuple or list of length 2
-                # representing (x, y) coordinates
-                point = (int(point[0][0]), int(point[0][1]))
-                cv2.circle(
-                    landmark_image,
-                    point,
-                    radius=5,
-                    color=colors[index],
-                    thickness=2,
-                )
-            image.pseudolandmarks = landmark_image
+    # The function returns coordinates of
+    # top, bottom, center-left, and center-right points
+    points = pcv.homology.x_axis_pseudolandmarks(
+        img=image.img, mask=image.binary_mask
+    )
+    # If needed, draw landmarks on the image for visualization
+    landmark_image = np.copy(image.img)
+    colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0)]
+    for index, group in enumerate(points):
+        for point in group:
+            # Ensure 'point' is a tuple or list of length 2
+            # representing (x, y) coordinates
+            point = (int(point[0][0]), int(point[0][1]))
+            cv2.circle(
+                landmark_image,
+                point,
+                radius=5,
+                color=colors[index],
+                thickness=2,
+            )
+        image.pseudolandmarks = landmark_image
 
-    if config.analyse:
-        shape_image = pcv.analyze.size(
-            img=image.img, labeled_mask=roi_mask, n_labels=1
-        )
-        image.analyse = shape_image
+    shape_image = pcv.analyze.size(
+        img=image.img, labeled_mask=roi_mask, n_labels=1
+    )
+    image.analyse = shape_image
 
     return image
 
@@ -338,7 +337,7 @@ def display_results(image: PcvImage) -> None:
             break
 
 
-def histogram_with_colors(pcv_image: PcvImage):
+def histogram_with_colors(pcv_image: PcvImage) -> np.ndarray:
 
     image = pcv_image.img
 
@@ -392,7 +391,8 @@ def histogram_with_colors(pcv_image: PcvImage):
     plt.ylabel("Proportion of Pixels (%)")
     plt.legend()
     plt.grid(True)
-    pcv_image.color = plt_to_numpy_image(canvas)
+    image = plt_to_numpy_image(canvas)
+    return image
 
 
 def main():
@@ -412,14 +412,15 @@ def main():
         print(f"Processing {len(src_files)} images...")
 
     dst = args.dst.removesuffix("/")
+    all_processing = args.all
 
     config = Config(
-        blur=args.blur if not single_image else True,
-        mask=args.mask if not single_image else True,
-        roi=args.roi if not single_image else True,
-        analyse=args.analyse if not single_image else True,
-        pseudolandmarks=args.pseudolandmarks if not single_image else True,
-        color=args.color if not single_image else True,
+        blur=args.blur if not all_processing else True,
+        mask=args.mask if not all_processing else True,
+        roi=args.roi if not all_processing else True,
+        analyse=args.analyse if not all_processing else True,
+        pseudolandmarks=args.pseudolandmarks if not all_processing else True,
+        color=args.color if not all_processing else True,
         src=src_files,
         dst=dst,
     )
@@ -427,6 +428,7 @@ def main():
     print("Source files:", config.src)
     print("Destination directory:", config.dst)
     print("Selected flags:")
+    print("Blur processing:", config.blur)
     print("Mask processing:", config.mask)
     print("ROI objects processing:", config.roi)
     print("Analyse object processing:", config.analyse)
@@ -446,7 +448,8 @@ def main():
             print("Displaying results...")
             display_results(images[0])
         else:
-            write_images(dst, images)
+            print("Writing images...")
+            write_images(dst, images, config)
     except Exception as e:
         print("Error writing images.", e)
         return
