@@ -95,6 +95,7 @@ def main():
         img_width = 256
 
         # Data augmentation
+        # augmentation_options = ["flipped", "rotated", "bright", "cropped"]
         augmentation_options = ["flipped", "rotated"]
         dir_for_training = "trainingData"
         if os.path.exists(dir_for_training):
