@@ -118,11 +118,11 @@ def read_images(src: List) -> list:
 
 
 def write_images(dst: str, images: List[PcvImage]) -> None:
-    print("Writing images...")
+    # print("Writing images...")
     for image in images:
         parts = image.img_name.split(".")
         # print(f"Writing image: {dst}/{image.img_name}")
-        pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
+        # pcv.print_image(img=image.img, filename=f"{dst}/{image.img_name}")
         if image.blur is not None:
             new_file_path = (
                 ".".join(parts[:-1]) + "_" + "blur" + "." + parts[-1]
@@ -211,7 +211,7 @@ def define_roi(image: PcvImage) -> PcvImage:
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="y")
     image.binary_mask = pcv.threshold.binary(
-        gray_img=image.grey_scale, threshold=60, object_type="light"
+        gray_img=image.grey_scale, threshold=35, object_type="light"
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     if config.blur:
