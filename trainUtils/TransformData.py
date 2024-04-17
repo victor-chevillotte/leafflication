@@ -81,6 +81,7 @@ class TransformData:
                             write_images(
                                 f"{dir_path}",
                                 [transformed_images],
+                                config
                             )
                         else:
                             print(f"Error transforming {image_path}")

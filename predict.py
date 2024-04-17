@@ -5,6 +5,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
+from Transformation import (
+    Config,
+    write_images,
+    apply_transformation,
+    read_images
+)
 # from PyQt5.QtWidgets import (
 #     QApplication,
 #     QWidget,
@@ -42,6 +48,31 @@ def predict_image(model, image_path, class_names):
     # Load the image
     img_height = 256
     img_width = 256
+    
+    image = read_images([image_path])
+    config = Config(
+        blur=False,
+        mask=True,
+        roi=False,
+        analyse=False,
+        pseudolandmarks=False,
+        color=False,
+        src="",
+        dst="",
+    )
+    register_dir = "temp"
+    transformed_images = apply_transformation(image[0], config)
+    if transformed_images:
+        write_images(
+            "temp",
+            [transformed_images],
+            config
+        )
+    image_path = image_path.split("/")[-1].split(".")[0]
+    new_file_path = f"{image_path}_mask.JPG"
+    image_path = f"{register_dir}/{new_file_path}"
+    print(f"Transformed image path : {image_path}")
+
     image_pil = tf.keras.preprocessing.image.load_img(
         image_path, target_size=(img_height, img_width)
     )
@@ -146,12 +177,12 @@ def predict_directory(model, dir_path, class_names):
             ok += 1
             correct_predictions_for_display += 1
             # show on same line correct prediction number
-            print(
-                f"Predicted class: {class_names[predicted_index]}, "
-                f"Real class: {class_names[real_class_index]}, "
-                f"Correct predictions: {correct_predictions_for_display}",
-                end="\r",
-            )
+            # print(
+            #     f"Predicted class: {class_names[predicted_index]}, "
+            #     f"Real class: {class_names[real_class_index]}, "
+            #     f"Correct predictions: {correct_predictions_for_display}",
+            #     end="\r",
+            # )
     print(f"\nCorrect predictions : {ok}, Wrong predictions : {wrong}")
     print(f"Accuracy : {math.floor(ok/(ok+wrong)*100)}%")
 

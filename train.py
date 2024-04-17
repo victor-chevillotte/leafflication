@@ -105,7 +105,7 @@ def main():
         print(f"The folder {dir_path} has been copied to {dir_for_training}")
         print()
         print("----- Augmenting data -----")
-        AugmentData.augment_data(
+        minimun_images_per_classes = AugmentData.augment_data(
             dir_for_training,
             augmentation_options,
             img_per_class
@@ -164,7 +164,12 @@ def main():
         )
 
         # display_history(history, epochs)
-
+        model_name = (
+            f"{model_name}_E{epochs}-B{batch_size}"
+            f"-A{minimun_images_per_classes}"
+        )
+        if transform_data_flag:
+            model_name += "T"
         model.save(f"{model_name}.keras")
     except Exception as e:
         print(f"An error has occured : {e}")
