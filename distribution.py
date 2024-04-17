@@ -1,6 +1,9 @@
 import argparse
 import os
+# import cv2
+import numpy as np
 import matplotlib.pyplot as plt
+from utils import plt_to_numpy_image, cv2_imshow_wrapper
 
 
 IMAGE_EXTENSIONS = [".jpg"]
@@ -58,8 +61,15 @@ def main():
         cmap = plt.get_cmap("tab20")
         colors = [cmap(i % 20) for i in range(len(counts))]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 10))
-        create_bar_chart(counts, names, "", "Directories", "Images count", colors, ax1)
+        create_bar_chart(
+            counts, names, "", "Directories", "Images count", colors, ax1
+        )
         create_pie_chart(counts, names, "", colors, ax2)
+
+        # canvas = fig.canvas
+        # image = plt_to_numpy_image(canvas)
+        # cv2_imshow_wrapper("Distribution", image)
+
         plt.show()
     except argparse.ArgumentError as e:
         print(f"Error with arguments: {e}")
