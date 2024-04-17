@@ -5,6 +5,7 @@ from typing import List
 from dataclasses import dataclass
 import cv2
 import matplotlib.pyplot as plt
+from utils import plt_to_numpy_image
 
 
 @dataclass
@@ -266,7 +267,7 @@ def display_results(image: PcvImage) -> None:
         "pseudo landmarks",
         "roi",
         "analyse",
-        "color histograms"
+        "color histograms",
     ]
     images = [
         image.img,
@@ -275,7 +276,7 @@ def display_results(image: PcvImage) -> None:
         image.pseudolandmarks,
         image.roi,
         image.analyse,
-        image.color
+        image.color,
     ]
 
     # Standardizing images by adding text and padding
@@ -313,9 +314,8 @@ def display_results(image: PcvImage) -> None:
     # Place images with padding
     current_x = 0
     for img in standardized_images:
-        concatenated_image[
-            : img.shape[0], current_x : current_x + img.shape[1]
-        ] = img
+        current_end = current_x + img.shape[1]
+        concatenated_image[: img.shape[0], current_x:current_end] = img
         current_x += (
             img.shape[1] + 10
         )  # Move to the next position with 10px padding
@@ -323,7 +323,9 @@ def display_results(image: PcvImage) -> None:
     # Display the concatenated image
     cv2.imshow("Transformed Images", concatenated_image)
     wait_time = 1000
-    while cv2.getWindowProperty("Transformed Images", cv2.WND_PROP_VISIBLE) >= 1:
+    while (
+        cv2.getWindowProperty("Transformed Images", cv2.WND_PROP_VISIBLE) >= 1
+    ):
         keyCode = cv2.waitKey(wait_time)
         if (keyCode & 0xFF) == ord("q"):
             cv2.destroyAllWindows()
@@ -360,7 +362,7 @@ def histogram_with_colors(pcv_image: PcvImage):
     canvas = fig.canvas
 
     for color_space, conversion, channel, channel_index in color_spaces:
-        
+
         # Convert image to desired color space
         converted_image = image
         if conversion:
@@ -378,7 +380,7 @@ def histogram_with_colors(pcv_image: PcvImage):
 
         # Plot histogram
         plt.plot(hist, label=color_space)
-        histograms.append((color_space, hist))
+        # histograms.append((color_space, hist))
 
     plt.title("Pixel Intensity Distribution for Different Color Spaces")
     plt.xlabel("Pixel Intensity")
@@ -386,9 +388,11 @@ def histogram_with_colors(pcv_image: PcvImage):
     plt.legend()
     plt.grid(True)
     canvas.draw()
-    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
-    pcv_image.color = image_flat.reshape(*reversed(canvas.get_width_height()), 3)
-    plt.show()
+    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
+    pcv_image.color = image_flat.reshape(
+        *reversed(canvas.get_width_height()), 3
+    )
+    # plt.show()
 
 
 def display_histogram(histograms):
@@ -441,7 +445,6 @@ def main():
 
     try:
         images = read_images(src_files)
-        # print(f"Images: {images}")
     except Exception as e:
         print("Error reading images.", e)
         return

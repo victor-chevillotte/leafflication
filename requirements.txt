@@ -1,7 +1,7 @@
-opencv-python-headless
 argparse==1.4.0
 pandas==2.2.1
 matplotlib==3.8.3
 plantcv==4.2.1
-numpy
+numpy==1.26.4
 tensorflow
+flake8==7.0.0
