@@ -5,3 +5,4 @@ plantcv==4.2.1
 numpy==1.26.4
 tensorflow
 flake8==7.0.0
+pyqt5

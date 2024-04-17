@@ -12,6 +12,7 @@ class AugmentData:
     @staticmethod
     def augment_data(dir_path, augmentation_options, img_per_class=600):
         images_class = get_images_count(dir_path)
+        # TODO: Create interface for images_class
         # images_class = [{path, name, count}]
         # example : images_class = [{'path': 'trainingData/Apple_Black_rot',
         # 'name': 'Apple_Black_rot', 'count': 620}]

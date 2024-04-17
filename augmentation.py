@@ -148,6 +148,7 @@ def display_augmented_images(
             break
 
 
+# TODO: Add augmentation type as parameter
 def augmentation(image, file_path, hide_display_option):
     # Apply each augmentation and save the augmented image
     flipped_image = flip_image(image)
