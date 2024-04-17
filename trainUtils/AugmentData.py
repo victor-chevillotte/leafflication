@@ -23,7 +23,7 @@ class AugmentData:
         # Calculate the minimum number of images per class
         if img_per_class is None:
             img_per_class = max(counts)
-        if img_per_class > min(counts) * len(augmentation_options):
+        if img_per_class > min(counts) * (len(augmentation_options) + 1):
             print(f"Each class will have {img_per_class} images minimum")
             print(
                 f"But minimum images per class is {min(counts)} images "
