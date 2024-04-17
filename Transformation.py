@@ -266,6 +266,7 @@ def display_results(image: PcvImage) -> None:
         "pseudo landmarks",
         "roi",
         "analyse",
+        "color histogram"
     ]
     images = [
         image.img,
@@ -274,6 +275,7 @@ def display_results(image: PcvImage) -> None:
         image.pseudolandmarks,
         image.roi,
         image.analyse,
+        image.color
     ]
 
     # Standardizing images by adding text and padding
@@ -328,7 +330,11 @@ def display_results(image: PcvImage) -> None:
             break
 
 
-def histogram_with_colors(image: np.ndarray):
+def histogram_with_colors(pcv_image: PcvImage):
+
+    image = pcv_image.img
+    histograms = []
+
     # Convert the image to different color spaces
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
@@ -350,7 +356,8 @@ def histogram_with_colors(image: np.ndarray):
     ]
 
     # Plot the pixel intensity distribution
-    plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6))
+    canvas = fig.canvas
 
     for color_space, conversion, channel, channel_index in color_spaces:
         # Convert image to desired color space
@@ -366,6 +373,7 @@ def histogram_with_colors(image: np.ndarray):
         hist /= hist.sum()
         hist *= 100
 
+        histograms.append((color_space, hist))
         # Plot histogram
         plt.plot(hist, label=color_space)
 
@@ -374,12 +382,19 @@ def histogram_with_colors(image: np.ndarray):
     plt.ylabel("Proportion of Pixels (%)")
     plt.legend()
     plt.grid(True)
-    plt.show()
+    canvas.draw()
+    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')  # (H * W * 3,)
+    # NOTE: reversed converts (W, H) from get_width_height to (H, W)
+    image = image_flat.reshape(*reversed(canvas.get_width_height()), 3)  # (H, W, 3)
+    pcv_image.color = image
+    # print(f"image: {image}")
+    # cv2.imshow("Histograms", image)
+    # plt.show()
+    return histograms
 
 
 def display_histogram(histograms):
     plt.figure(figsize=(20, 10))
-    # show all lines on one graph
     for color_space, hist in histograms:
         plt.plot(hist, label=color_space)
     plt.legend()
