@@ -5,15 +5,15 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
-from PyQt5.QtWidgets import (
-    QApplication,
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-    QHBoxLayout,
-)
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
+# from PyQt5.QtWidgets import (
+#     QApplication,
+#     QWidget,
+#     QLabel,
+#     QVBoxLayout,
+#     QHBoxLayout,
+# )
+# from PyQt5.QtGui import QPixmap
+# from PyQt5.QtCore import Qt
 
 
 def parse_args(args):
@@ -55,51 +55,53 @@ def predict_image(model, image_path, class_names):
     print(f"Predictions : {predictions}")
     print(f"Score : {score}")
     print(f"Predicted class : {predicted_class}")
-    # open widow showing original image side to side with transformed image below them showing the predicted class
-    app = QApplication([])
+    # open widow showing original image side to side with transformed image
+    # below them showing the predicted class
 
-    window = QWidget()
+    # app = QApplication([])
 
-    window.setWindowTitle("PyQt Image Display Example")
-    window.setGeometry(100, 100, 800, 600)  # Position x, y, width, height
+    # window = QWidget()
 
-    # Layouts
-    mainLayout = QVBoxLayout()
-    imagesLayout = QHBoxLayout()
+    # window.setWindowTitle("PyQt Image Display Example")
+    # window.setGeometry(100, 100, 800, 600)  # Position x, y, width, height
 
-    # Images
-    image1 = QLabel()
-    pixmap1 = QPixmap(image_path)
-    image1.setPixmap(pixmap1)
-    image1.setAlignment(Qt.AlignCenter)
+    # # Layouts
+    # mainLayout = QVBoxLayout()
+    # imagesLayout = QHBoxLayout()
 
-    image2 = QLabel()
-    pixmap2 = QPixmap(image_path)
-    image2.setPixmap(pixmap2)
-    image2.setAlignment(Qt.AlignCenter)
+    # # Images
+    # image1 = QLabel()
+    # pixmap1 = QPixmap(image_path)
+    # image1.setPixmap(pixmap1)
+    # image1.setAlignment(Qt.AlignCenter)
 
-    # Adding images to the images layout
-    imagesLayout.addWidget(image1)
-    imagesLayout.addWidget(image2)
+    # image2 = QLabel()
+    # pixmap2 = QPixmap(image_path)
+    # image2.setPixmap(pixmap2)
+    # image2.setAlignment(Qt.AlignCenter)
 
-    # Title
-    titleLabel = QLabel("=== DL Classification ===")
-    titleLabel.setAlignment(Qt.AlignCenter)
+    # # Adding images to the images layout
+    # imagesLayout.addWidget(image1)
+    # imagesLayout.addWidget(image2)
 
-    # Predicted class
-    predictedClassLabel = QLabel(f"predicted class = {predicted_class}")
-    predictedClassLabel.setAlignment(Qt.AlignCenter)
+    # # Title
+    # titleLabel = QLabel("=== DL Classification ===")
+    # titleLabel.setAlignment(Qt.AlignCenter)
 
-    # Adding widgets to the main layout
-    mainLayout.addLayout(imagesLayout)
-    mainLayout.addWidget(titleLabel)
-    mainLayout.addWidget(predictedClassLabel)
+    # # Predicted class
+    # predictedClassLabel = QLabel(f"predicted class = {predicted_class}")
+    # predictedClassLabel.setAlignment(Qt.AlignCenter)
 
-    # Set the main layout of the window
-    window.setLayout(mainLayout)
-    window.show()
+    # # Adding widgets to the main layout
+    # mainLayout.addLayout(imagesLayout)
+    # mainLayout.addWidget(titleLabel)
+    # mainLayout.addWidget(predictedClassLabel)
 
-    app.exec_()
+    # # Set the main layout of the window
+    # window.setLayout(mainLayout)
+    # window.show()
+
+    # app.exec_()
 
 
 def predict_directory(model, dir_path, class_names):
@@ -137,14 +139,17 @@ def predict_directory(model, dir_path, class_names):
             correct_predictions_for_display = 0
             wrong += 1
             print(
-                f"\nERROR :Predicted class: {class_names[predicted_index]}, Real class: {class_names[real_class_index]}"
+                f"\nERROR :Predicted class: {class_names[predicted_index]}, "
+                f"Real class: {class_names[real_class_index]}"
             )
         else:
             ok += 1
             correct_predictions_for_display += 1
             # show on same line correct prediction number
             print(
-                f"Predicted class: {class_names[predicted_index]}, Real class: {class_names[real_class_index]}, Correct predictions: {correct_predictions_for_display}",
+                f"Predicted class: {class_names[predicted_index]}, "
+                f"Real class: {class_names[real_class_index]}, "
+                f"Correct predictions: {correct_predictions_for_display}",
                 end="\r",
             )
     print(f"\nCorrect predictions : {ok}, Wrong predictions : {wrong}")
