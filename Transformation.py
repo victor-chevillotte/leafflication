@@ -36,6 +36,7 @@ class Config:
     color: bool
     src: str
     dst: str
+    single_image: bool = False
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -232,7 +233,8 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     )
     roi_mask = define_roi(image)
 
-    image.color = histogram_with_colors(image)
+    if config.single_image:
+        image.color = histogram_with_colors(image)
 
     # The function returns coordinates of
     # top, bottom, center-left, and center-right points
@@ -394,6 +396,7 @@ def histogram_with_colors(pcv_image: PcvImage) -> np.ndarray:
     plt.legend()
     plt.grid(True)
     image = plt_to_numpy_image(canvas)
+    plt.close(fig)
     return image
 
 
@@ -425,6 +428,7 @@ def main():
         color=args.color if not all_processing else True,
         src=src_files,
         dst=dst,
+        single_image=single_image,
     )
     print("Configuration:")
     print("Source files:", config.src)
