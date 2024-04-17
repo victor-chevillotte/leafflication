@@ -229,7 +229,8 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         histogram_with_colors(image)
 
     if config.pseudolandmarks:
-        # The function returns coordinates of top, bottom, center-left, and center-right points
+        # The function returns coordinates of
+        # top, bottom, center-left, and center-right points
         points = pcv.homology.x_axis_pseudolandmarks(
             img=image.img, mask=image.binary_mask
         )
@@ -238,7 +239,8 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
         colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 0)]
         for index, group in enumerate(points):
             for point in group:
-                # Ensure 'point' is a tuple or list of length 2, representing (x, y) coordinates
+                # Ensure 'point' is a tuple or list of length 2
+                # representing (x, y) coordinates
                 point = (int(point[0][0]), int(point[0][1]))
                 cv2.circle(
                     landmark_image,
@@ -282,10 +284,11 @@ def display_results(image: PcvImage) -> None:
     # Standardizing images by adding text and padding
     standardized_images = []
     for img, name in zip(images, names):
-        # Check if the image is grayscale (single channel). If so, convert to RGB.
+        # Check if the image is grayscale (single channel)
+        # If so, convert to RGB
         if len(img.shape) == 2 or img.shape[2] == 1:  # Grayscale
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        # Calculate the new width of the image to maintain aspect ratio, leaving space for padding
+        # Calculate the new width of the image to maintain aspect ratio
         height, width = img.shape[:2]
         padded_img = cv2.copyMakeBorder(
             img, 50, 10, 10, 10, cv2.BORDER_CONSTANT, value=(255, 255, 255)
@@ -334,7 +337,6 @@ def display_results(image: PcvImage) -> None:
 
 def histogram_with_colors(pcv_image: PcvImage):
 
-    histograms = []
     image = pcv_image.img
 
     # Convert the image to different color spaces
@@ -387,21 +389,7 @@ def histogram_with_colors(pcv_image: PcvImage):
     plt.ylabel("Proportion of Pixels (%)")
     plt.legend()
     plt.grid(True)
-    canvas.draw()
-    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
-    pcv_image.color = image_flat.reshape(
-        *reversed(canvas.get_width_height()), 3
-    )
-    # plt.show()
-
-
-def display_histogram(histograms):
-    plt.figure(figsize=(20, 10))
-    # show all lines on one graph
-    for color_space, hist in histograms:
-        plt.plot(hist, label=color_space)
-    plt.legend()
-    plt.show()
+    pcv_image.color = plt_to_numpy_image(canvas)
 
 
 def main():
