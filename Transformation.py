@@ -40,7 +40,7 @@ class Config:
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Image transformation.")
-    group = parser.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "filename",
         type=str,
