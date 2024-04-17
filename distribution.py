@@ -23,6 +23,10 @@ def create_pie_chart(values, names, title, colors, axis):
     axis.set_title(title)
 
 
+def create_text(ax, text):
+    ax.text(0.5, 0.5, text, ha='center', va='center')
+    ax.axis('off')
+
 def get_images_count(dir_path):
     images_count = []
     for path, _, files in os.walk(dir_path):
