@@ -53,12 +53,14 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         dest="src",
         help="Specify the source directory.",
+        metavar="SRC_DIR",
     )
     parser.add_argument(
         "-dst",
         type=str,
         help="Specify the destination directory.",
         default="data/processed/",
+        metavar="DST_DIR",
     )
     parser.add_argument(
         "-blur",
@@ -109,7 +111,7 @@ def parse_arguments() -> argparse.Namespace:
         default=False,
     )
     parser.add_argument(
-        "--all",
+        "-all",
         type=bool,
         action=argparse.BooleanOptionalAction,
         dest="all",
@@ -223,11 +225,11 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     )
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     image.blur = pcv.gaussian_blur(
-            img=image.binary_mask, ksize=(3, 3), sigma_x=0
-        )
+        img=image.binary_mask, ksize=(3, 3), sigma_x=0
+    )
     image.mask = pcv.apply_mask(
-            img=image.img, mask=image.binary_mask, mask_color="white"
-        )
+        img=image.img, mask=image.binary_mask, mask_color="white"
+    )
     roi_mask = define_roi(image)
 
     image.color = histogram_with_colors(image)
