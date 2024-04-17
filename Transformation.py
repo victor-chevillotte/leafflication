@@ -394,7 +394,6 @@ def histogram_with_colors(pcv_image: PcvImage) -> np.ndarray:
 
         # Plot histogram
         plt.plot(hist, label=color_space)
-        # histograms.append((color_space, hist))
 
     plt.title("Pixel Intensity Distribution for Different Color Spaces")
     plt.xlabel("Pixel Intensity")
@@ -418,7 +417,6 @@ def main():
         src_files.append(args.filename)
     if args.src:
         print("Source directory specified.", args.src)
-        # Read all images from the source directory
         src_files = pcv.io.read_dataset(source_path=args.src)
         print(f"Processing {len(src_files)} images...")
 
@@ -436,16 +434,6 @@ def main():
         dst=dst,
         single_image=single_image,
     )
-    print("Configuration:")
-    print("Source files:", config.src)
-    print("Destination directory:", config.dst)
-    print("Selected flags:")
-    print("Blur processing:", config.blur)
-    print("Mask processing:", config.mask)
-    print("ROI objects processing:", config.roi)
-    print("Analyse object processing:", config.analyse)
-    print("Pseudolandmarks processing:", config.pseudolandmarks)
-    print("Color histogram processing:", config.color)
     print("Applying image transformation...")
 
     try:
