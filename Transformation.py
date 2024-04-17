@@ -167,7 +167,7 @@ def write_images(dst: str, images: List[PcvImage], config: Config) -> None:
             pcv.print_image(
                 img=image.pseudolandmarks, filename=f"{dst}/{new_file_path}"
             )
-    print("Images written.")
+    # print("Images written.")
 
 
 def define_roi(image: PcvImage) -> PcvImage:

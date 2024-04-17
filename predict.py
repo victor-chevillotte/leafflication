@@ -66,6 +66,7 @@ def predict_image(model, image_path, class_names):
         write_images(
             "temp",
             [transformed_images],
+            config
         )
     image_path = image_path.split("/")[-1].split(".")[0]
     new_file_path = f"{image_path}_mask.JPG"

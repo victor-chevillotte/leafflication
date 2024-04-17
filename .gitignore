@@ -222,3 +222,4 @@ data/*
 *.keras
 *.h5
 trainingData
+temp/*
