@@ -2,20 +2,6 @@
 
 42 School Project
 
-## For correction 
-
-python3 predict.py --i data/test_images/Unit_test1/Apple_Black_rot1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_healthy1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_healthy2.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_rust.JPG  -m first_saved_model.keras      
-python3 predict.py --i data/test_images/Unit_test1/Apple_scab.JPG  -m first_saved_model.keras      
-
-python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot2.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_Esca.JPG  -m first_saved_model.keras   
-python3 predict.py --i data/test_images/Unit_test2/Grape_healthy.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_spot.JPG  -m first_saved_model.keras
-
 
 ## Introduction
 
@@ -111,45 +97,46 @@ The script `Transformation.py` shows the result of possible transformations for 
 
 ![](docs/transformation.png)
 
-### Data Cleaning
+- A binary mask is generated with the otsu thresholding method to isolate the leaf from the background
+- A ROI (Region of Interest) is generated to crop the leaf from the image
+- The leaf is analyzed with plantCV to extract its characteristics (area, perimeter, width, height, etc.)
+- An histogram is provided to show the image color distribution of different color spaces (RGB, HSV and LAB)
 
-We selected the following features for our logistic regression model :
-- Arithmancy
-- Astronomy
-- Herbology
-- Divination
-- Muggle Studies
-- Ancient Runes
-- History of Magic
-- Transfiguration
-- Potions
-- Charms
-- Flying
+When the `-src` flag is provided, the script applies the transformations to all images in the folder and saves the results in the destination folder
+The available transformations are :
+- Blur (gaussian blur applied to binary mask) `-blur`
+- Masking (binary mask applied) `-mask`
+- Pseudo Landmarks (shape analysis independant of the plant size) `-pseudolandmarks`
+- ROI (Region of Interest applied) `-roi`
+- Analysis (size and shape, applied on the ROI mask) `-analyse`
+- Color Histogram (RGB, HSV and LAB histograms) `-color`
 
-
-We choosed to remove :
-- All non numerical features
-- The course `Care for Magical Creatures` from the features because the distribution is homogenous 
-between the houses and it would not help the model to differentiate between the houses  
-- The course `Defense Against the Dark Arts` because its distribution is similar to the one of `Astronomy` (we only keep one of the two similar features)
-
-We also completed the dataset the mean of each feature for the missing values because the dataset was lacking  
+The `-dst` flag is used to specify the destination folder for the transformed images and all the transformations can be applied with the `-all` flag
 
 
-## Logistic Regression
+## Classification
 
 ### Model Training
 
-- The model is trained using logistic regression on the training dataset for each house in the style of one vs all : 
-    - For each house, the model is trained to predict the likelihood of a student belonging to this house (0 is unlikely and 1 is likely)
-    - The model determines what house is the most likely for a student based on the highest likelihood of all houses
-- The gradient descent algorithm is used to minimize the cost function and find the optimal weights for the model
-- The script `logreg_train.py` trains the model and stores the weights for each feature for each house in the file `data/weights.npy`
 
-> The accuracy given in the training phase is an indication a the "fitting" of our model and does not represents the real accuracy of a prediction on a test dataset  
 
 
 ### Model Evaluation
 
-- The `data/dataset_test.csv` file contains a test dataset of 400 entries, missing the house of the students
-- The script `logreg_predict.py`, retrieves the weights from the file `data/weights.npy` and predicts the house of the students in the test dataset. The predictions are stored in the file `houses.csv`
+
+
+## For correction 
+
+```bash
+python3 predict.py --i data/test_images/Unit_test1/Apple_Black_rot1.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test1/Apple_healthy1.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test1/Apple_healthy2.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test1/Apple_rust.JPG  -m first_saved_model.keras      
+python3 predict.py --i data/test_images/Unit_test1/Apple_scab.JPG  -m first_saved_model.keras      
+
+python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot1.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot2.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test2/Grape_Esca.JPG  -m first_saved_model.keras   
+python3 predict.py --i data/test_images/Unit_test2/Grape_healthy.JPG  -m first_saved_model.keras
+python3 predict.py --i data/test_images/Unit_test2/Grape_spot.JPG  -m first_saved_model.keras
+```
