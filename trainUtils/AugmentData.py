@@ -1,7 +1,10 @@
+import os
 from augmentation import (
     read_image_file,
     flip_image,
     rotate_image,
+    bright_image,
+    crop_image,
     save_augmented_image
 )
 from distribution import get_images_count
@@ -59,19 +62,22 @@ class AugmentData:
     def augment_class(dir_path, count, img_per_class, augmentation_options):
         j = 0
         additional_images = img_per_class - count
-        while j < additional_images:
-            for i in range(len(augmentation_options)):
-                for y in range(count):
-                    image_path = f"{dir_path}/image ({y + 1}).JPG"
-                    image = read_image_file(image_path)
-                    AugmentData.augmentation(
-                        image,
-                        image_path,
-                        augmentation_options[i]
-                    )
-                    j += 1
-                    if j >= additional_images:
-                        return j
+        for i in range(len(augmentation_options)):
+            for y in range(count):
+                image_path = f"{dir_path}/image ({y + 1}).JPG"
+                if os.path.exists(image_path):
+                    try:
+                        image = read_image_file(image_path)
+                        AugmentData.augmentation(
+                            image,
+                            image_path,
+                            augmentation_options[i]
+                        )
+                        j += 1
+                        if j >= additional_images:
+                            return j
+                    except Exception:
+                        None
 
     @staticmethod
     def augmentation(image, file_path, augmentation_options):
@@ -81,5 +87,9 @@ class AugmentData:
         if "rotated" in augmentation_options:
             rotated_image = rotate_image(image)
             save_augmented_image(rotated_image, file_path, "rotated")
-        # distorted_image = distort_image(image)
-        # save_augmented_image(distorted_image, file_path, "distorted")
+        if "bright" in augmentation_options:
+            brighter_image = bright_image(image)
+            save_augmented_image(brighter_image, file_path, "bright")
+        if "cropped" in augmentation_options:
+            cropped_image = crop_image(image)
+            save_augmented_image(cropped_image, file_path, "cropped")
