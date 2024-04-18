@@ -1,5 +1,7 @@
 # DataScience X Logistic Regression
 
+42 School Project
+
 ## For correction 
 
 python3 predict.py --i data/test_images/Unit_test1/Apple_Black_rot1.JPG  -m first_saved_model.keras
@@ -17,10 +19,7 @@ python3 predict.py --i data/test_images/Unit_test2/Grape_spot.JPG  -m first_save
 
 ## Introduction
 
-In this project, we will be using the Logistic Regression algorithm to predict the likelihood of a student belonging to an Hogwarts House based on their grades and other features  
-This first part of the project is focused on the data exploration and cleaning process : We will create several visualizations to understand the dataset and outline the features that will be used in the model  
-
-In the second part we will build a logistic regression model, trained on the training dataset, and evaluate its performance on the test dataset. We will also use the model to predict the house of a list of students.
+The Goal of this Computer Vision project is to classify 2 types of plant with different diseases using a Convolutional Neural Network (CNN) model
 
 
 ### Installation
@@ -31,75 +30,86 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+```bash
+make
+```
+
 ### Usage
 
-- training : `python logreg_train.py`
-- prediction : `python logreg_predict.py`
+#### Part I
 
+```bash
+python3 Distribution.py -d data/images/leaves
+```
+
+#### Part II
+
+```bash
+python3 Augmentation.py --folder data/images/leaves
+```
+
+#### Part III
+
+- Visualize possible transformations of a single image
+```bash
+python3 Transformation.py <image_path>
+```
+
+- To apply specific transformations to all images in a folder
+```bash
+python3 Transformation.py -src data/images/leaves -dst data/images/processed -mask -analyse
+```
+
+#### Part IV
+
+- Train the model
+```bash
+python3 Train.py -d data/leaves/images -n <model_name> --e <epoch_number> --b <batch_size>
+```
+
+- Predict the class of an image
+```bash
+python3 Predict.py -i <image_path> -m <model_name>
+```
 
 ## Data Exploration
 
 ### Data Analysis
 
-The training dataset contains 19 features and 1600 rows. The features are the following: 
-- Index
-- Hogwarts House
-- First Name
-- Last Name
-- Birthday
-- Best Hand
-- Arithmancy
-- Astronomy
-- Herbology
-- Defense Against the Dark Arts
-- Divination
-- Muggle Studies
-- Ancient Runes
-- History of Magic
-- Transfiguration
-- Potions
-- Care of Magical Creatures
-- Charms
-- Flying
-
-The script `describe.py` takes a dataset as parameter and shows basic statistics about the numerical features of the dataset : 
-- Count : number of records
-- Mean : `sum(x) / n`
-- Standard deviation : dispersion measurements of data samples = `sqrt(sum((x - x_mean)^2)/n)`
-- Minimum 
-- 25th percentile 
-- 50th percentile
-- 75th percentile
-- Maximum
-
-It outputs a list of non numerical features found in the dataset  
-
-![](docs/describe.png)
+The dataset contains the following plant categories :
+- Apple (healthy)
+- Apple (black rot)
+- Apple (rust)
+- Apple (scab)
+- Grape (black rot)
+- Grape (esca)
+- Grape (healthy)
+- Grape (spot)
 
 
 ### Data Visualization
 
-#### Histograms
+#### Distribution
 
-The script `histograms.py` shows histograms for all the numerical features of the dataset
+The script `Distribution.py` shows histograms for all the categories of the dataset
 
-This visualization allows us to answer the following question : `Which Hogwarts course has a homogeneous score distribution between all four houses?` 
+![](docs/distribution.png)
 
-![](docs/histogram.png)
+This allows us to target specific categories that are under represented in the dataset and apply data augmentation to balance the dataset
 
-#### Scatter Plots
+#### Augmentation
 
-The script `scatter_plot.py` shows scatter plots for all the numerical features of the dataset
-It allows us to answer the following question : `What are the two features that are similar ?`
+The script `Augmentation.py` shows the result of possible augmentations for the dataset
 
-![](docs/scatter_plot.png)
+![](docs/augmentation.png)
 
-#### Pair Plots
+We can specify a limit for the number of generated image in order to balance the dataset with the flag `--limit`
 
-The script `pair_plot.py` shows pair plots for all the numerical features of the dataset
-It allows us to answer the final question : `what features are you going to use for your logistic regression?`
+#### Transformation
 
-![](docs/pair_plot.png)
+The script `Transformation.py` shows the result of possible transformations for a single image when no `-src` flag is provided
+
+![](docs/transformation.png)
 
 ### Data Cleaning
 
