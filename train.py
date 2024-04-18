@@ -1,26 +1,94 @@
 import argparse
 import tensorflow as tf
 import os
+import shutil
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-import shutil
 from trainUtils.AugmentData import AugmentData
 from trainUtils.TransformData import TransformData
-from trainUtils.utils import Utils
+from trainUtils.Utils import Utils
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Training")
+    parser.add_argument("-d", type=str, help="Directory path")
+    parser.add_argument("-n", type=str, help="Model name")
+    parser.add_argument("--e", type=int, help="Epochs")
+    parser.add_argument("--b", type=int, help="Batch size")
+    parser.add_argument("--s", type=int, help="Seed")
+    parser.add_argument(
+        "--v",
+        type=int,
+        help="Percents of validation data"
+    )
+    parser.add_argument(
+        "--a",
+        type=int,
+        help="Augment data with a minimum of images per class"
+    )
+    parser.add_argument(
+        "--t",
+        action="store_true",
+        help="Don't transform data"
+    )
+    parser.add_argument(
+        "--r",
+        action="store_true",
+        help="Don't augment data"
+    )
+    parser.add_argument(
+        "--p",
+        type=int,
+        help="Patience for early stopping"
+    )
+    return parser.parse_args()
+
+
+def data_augmentation(model_parameters, dir_for_training):
+    if model_parameters.augment_data_flag:
+        if os.path.exists(dir_for_training):
+            print(f"The folder {dir_for_training} already exists")
+            shutil.rmtree(dir_for_training)
+            print(f"The folder {dir_for_training} has been deleted")
+        shutil.copytree(model_parameters.dir_path, dir_for_training)
+        print(
+            f"The folder {model_parameters.dir_path} has been copied "
+            f"to {dir_for_training}"
+        )
+        print()
+        print("----- Augmenting data -----")
+        model_parameters.img_per_class = AugmentData.augment_data(
+            dir_for_training,
+            model_parameters.augment_options,
+            model_parameters.img_per_class
+        )
+
+        # Data transformation
+        if (
+            model_parameters.transform_data_flag
+            and len(model_parameters.augment_options) > 0
+        ):
+            print("----- Transforming data -----")
+            TransformData.transform_data(
+                dir_for_training,
+                model_parameters.transform_option
+            )
+
+    Utils.display_histogram_terminal(dir_for_training)
 
 
 def get_data(
     dir_path,
     batch_size,
     seed,
-    validation_data_percents,
+    validation_data,
     img_height=256,
     img_width=256,
 ):
-    print(f"Validation data percents : {validation_data_percents}")
+    print(f"Validation data : {validation_data}")
     train_data = tf.keras.utils.image_dataset_from_directory(
         dir_path,
-        validation_split=validation_data_percents,
+        validation_split=validation_data,
         subset="training",
         seed=seed,
         image_size=(img_height, img_width),
@@ -28,7 +96,7 @@ def get_data(
     )
     validation_data = tf.keras.utils.image_dataset_from_directory(
         dir_path,
-        validation_split=validation_data_percents,
+        validation_split=validation_data,
         subset="validation",
         seed=seed,
         image_size=(img_height, img_width),
@@ -57,66 +125,49 @@ def get_data(
     return normalized_train_data, normalized_validation_data, class_names
 
 
+def build_model(img_height, img_width, nb_classes):
+    # CNN model
+
+    model = Sequential(
+        [
+            layers.Input(shape=(img_height, img_width, 3)),
+            # layers.Rescaling(1./255), for normalization,
+            # but we have already done it
+            layers.Conv2D(16, 3, padding="same", activation="relu"),
+            layers.MaxPooling2D(),
+            layers.Conv2D(32, 3, padding="same", activation="relu"),
+            layers.MaxPooling2D(),
+            layers.Conv2D(64, 3, padding="same", activation="relu"),
+            layers.MaxPooling2D(),
+            layers.Flatten(),
+            layers.Dense(128, activation="relu"),
+            layers.Dense(nb_classes, activation="softmax"),
+        ]
+    )
+
+    model.compile(
+        optimizer="adam",
+        loss="sparse_categorical_crossentropy",
+        metrics=["accuracy"],
+    )
+    return model
+
+
 def main():
     try:
-        parser = argparse.ArgumentParser(description="Training")
-        parser.add_argument("-d", type=str, help="Directory path")
-        parser.add_argument("-n", type=str, help="Model name")
-        parser.add_argument("--e", type=int, help="Epochs")
-        parser.add_argument("--b", type=int, help="Batch size")
-        parser.add_argument("--s", type=int, help="Seed")
-        parser.add_argument(
-            "--v",
-            type=int,
-            help="Percents of validation data"
-        )
-        parser.add_argument(
-            "--a",
-            type=int,
-            help="Augment data with a minimum of images per class"
-        )
-        parser.add_argument(
-            "--t",
-            action="store_true",
-            help="Don't transform data"
-        )
-        args = parser.parse_args()
-        (
-            dir_path,
-            model_name,
-            epochs,
-            batch_size,
-            seed,
-            validation_data_percents,
-            img_per_class,
-            transform_data_flag,
-        ) = Utils.parse_args(args)
-        img_height = 256
-        img_width = 256
-
-        # Data augmentation
-        augmentation_options = ["flipped", "rotated"]
+        args = get_args()
+        model_parameters = Utils.parse_args(args)
+        model_parameters.augment_options = [
+            "flipped",
+            "rotated",
+            "bright",
+            "cropped"
+        ]
+        model_parameters.transform_options = "mask"
+        model_parameters.img_size = (256, 256)
         dir_for_training = "trainingData"
-        if os.path.exists(dir_for_training):
-            print(f"The folder {dir_for_training} already exists")
-            shutil.rmtree(dir_for_training)
-            print(f"The folder {dir_for_training} has been deleted")
-        shutil.copytree(dir_path, dir_for_training)
-        print(f"The folder {dir_path} has been copied to {dir_for_training}")
-        print()
-        print("----- Augmenting data -----")
-        minimun_images_per_classes = AugmentData.augment_data(
-            dir_for_training,
-            augmentation_options,
-            img_per_class
-        )
 
-        # Data transformation
-        if transform_data_flag and len(augmentation_options) > 0:
-            print("----- Transforming data -----")
-            TransformData.transform_data(dir_for_training)
-
-        Utils.display_histogram_terminal(dir_for_training)
+        data_augmentation(model_parameters, dir_for_training)
 
         # Training
         (
@@ -125,52 +176,50 @@ def main():
             class_names
         ) = get_data(
             dir_for_training,
-            batch_size,
-            seed,
-            validation_data_percents,
-            img_height,
-            img_width,
+            model_parameters.batch_size,
+            model_parameters.seed,
+            model_parameters.validation_data,
+            model_parameters.img_size[0],
+            model_parameters.img_size[1],
         )
 
-        # CNN model
-        model = Sequential(
-            [
-                layers.Input(shape=(img_height, img_width, 3)),
-                # layers.Rescaling(1./255), for normalization,
-                # but we have already done it
-                layers.Conv2D(16, 3, padding="same", activation="relu"),
-                layers.MaxPooling2D(),
-                layers.Conv2D(32, 3, padding="same", activation="relu"),
-                layers.MaxPooling2D(),
-                layers.Conv2D(64, 3, padding="same", activation="relu"),
-                layers.MaxPooling2D(),
-                layers.Flatten(),
-                layers.Dense(128, activation="relu"),
-                layers.Dense(len(class_names), activation="softmax"),
-            ]
-        )
-        # check dropout layers
-
-        model.compile(
-            optimizer="adam",
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-            metrics=["accuracy"],
+        model = build_model(
+            model_parameters.img_size[0],
+            model_parameters.img_size[1],
+            len(class_names)
         )
         model.summary()
+        stop_early = tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            patience=model_parameters.patience
+        )
         model.fit(
             normalized_train_data,
             validation_data=normalized_validation_data,
-            epochs=epochs,
+            epochs=model_parameters.epochs,
+            callbacks=[stop_early]
         )
+
+        train_score = model.evaluate(normalized_train_data)
+        print(f"Training score : {train_score}")
+        validation_score = model.evaluate(normalized_validation_data)
+        print(f"Validation score : {validation_score}")
 
         # display_history(history, epochs)
         model_name = (
-            f"{model_name}_E{epochs}-B{batch_size}"
-            f"-A{minimun_images_per_classes}"
+            f"{model_parameters.model_name}_E{model_parameters.epochs}"
+            f"-B{model_parameters.batch_size}"
+            f"-A{model_parameters.img_per_class}"
         )
-        if transform_data_flag:
+        if model_parameters.transform_data_flag:
             model_name += "T"
-        model.save(f"{model_name}.keras")
+        Utils.save_model(
+            model,
+            model_name,
+            model_parameters,
+            train_score,
+            validation_score
+        )
     except Exception as e:
         print(f"An error has occured : {e}")
 

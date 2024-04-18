@@ -1,7 +1,26 @@
 import os
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 from distribution import get_images_count
+from dataclasses import dataclass
+
+
+@dataclass
+class ModelParameters:
+    dir_path: str
+    model_name: str
+    epochs: int
+    batch_size: int
+    seed: int
+    validation_data: int
+    img_per_class: int
+    transform_data_flag: bool
+    augment_data_flag: bool
+    augment_options: list = None
+    transform_option: str = None
+    img_size: tuple = (256, 256)
+    patience: int = 2
 
 
 class Utils:
@@ -64,7 +83,15 @@ class Utils:
             transform_data = False
         else:
             transform_data = True
-        return (
+        if args.r:
+            augment_data = False
+        else:
+            augment_data = True
+        if not os.path.exists("models"):
+            os.makedirs("models")
+        if not os.path.exists("models_config_saved"):
+            os.makedirs("models_config_saved")
+        return ModelParameters(
             dir_path,
             model_name,
             epochs,
@@ -73,6 +100,7 @@ class Utils:
             validation_data_percents / 100,
             img_per_class,
             transform_data,
+            augment_data
         )
 
     @staticmethod
@@ -121,3 +149,69 @@ class Utils:
             print()
         except Exception as e:
             print(f"Error display_histogram_terminal: {e}")
+
+    @staticmethod
+    def save_model(model, model_name, params, train_score, validation_score):
+        try:
+            if os.path.exists(f"models/{model_name}.keras"):
+                model_name = model_name + "_1"
+                while os.path.exists(f"models/{model_name}.keras"):
+                    model_name = model_name[:-1] + str(
+                        int(model_name[-1]) + 1
+                    )
+            model.save(f"models/{model_name}.keras")
+
+            compile_info = {
+                "optimizer": str(model.optimizer.__class__.__name__),
+                "loss": model.loss,
+                "metrics": model.metrics_names,
+                "optimizer_config": model.optimizer.get_config()
+            }
+
+            parameters = {
+                "epochs": params.epochs,
+                "batch_size": params.batch_size,
+                "seed": params.seed,
+                "validation_data_percents": params.validation_data,
+                "img_per_class": params.img_per_class,
+                "transform_data_flag": params.transform_data_flag,
+                "augment_data_flag": params.augment_data_flag,
+                "augment_options": params.augment_options,
+                "transform_options": params.transform_option,
+                "img_size": params.img_size,
+                "patience": params.patience
+            }
+
+            score = {
+                "train_loss": train_score[0],
+                "train_accuracy": train_score[1],
+                "validation_loss": validation_score[0],
+                "validation_accuracy": validation_score[1]
+            }
+
+            model_info = {
+                "score": score,
+                "parameters": parameters,
+                "compile_infos": compile_info,
+                "architecture": []
+            }
+
+            for layer in model.layers:
+                layer_config = layer.get_config()
+                layer_info = {
+                    "type": layer.__class__.__name__,
+                    "units": layer_config.get("units"),
+                    "activation": layer_config.get("activation"),
+                    "padding": layer_config.get("padding")
+                }
+                model_info["architecture"].append(layer_info)
+
+            model_json = json.dumps(model_info, indent=4)
+            with open(
+                f"models_config_saved/{model_name}.json",
+                "w"
+            ) as json_file:
+                json_file.write(model_json)
+
+        except Exception as e:
+            print(f"Error save_model: {e}")

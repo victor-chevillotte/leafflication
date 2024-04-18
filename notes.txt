@@ -1,14 +1,25 @@
-ModelCam_E4-B32-A825T
-accuracy: 0.9763 - loss: 0.0650 - val_accuracy: 0.8961 - val_loss: 0.3751
+model = Sequential(
+    [
+        layers.Input(shape=(img_height, img_width, 3)),
+        # layers.Rescaling(1./255), for normalization,
+        # but we have already done it
 
-ModelCam_E4-B32-A825T + Dropout
-accuracy: 0.9791 - loss: 0.0754 - val_accuracy: 0.8757 - val_loss: 0.3799
+        # layers.Conv2D(64, 3, padding="same", activation="relu"),
+        # layers.MaxPooling2D(),
+        # layers.BatchNormalization(),
 
-ModelCam_E4-B128-A825T + Dropout
-accuracy: 0.9217 - loss: 0.2364 - val_accuracy: 0.8797 - val_loss: 0.3290
+        # layers.Conv2D(128, 3, padding="same", activation="relu"),
+        # layers.MaxPooling2D(),
+        # layers.BatchNormalization(),
 
-ModelCam_E4-B128-A825T + L2
-accuracy: 0.8831 - loss: 0.5974 - val_accuracy: 0.8056 - val_loss: 0.8007
+        # layers.Conv2D(256, 3, padding="same", activation="relu"),
+        # layers.MaxPooling2D(),
+        # layers.BatchNormalization(),
 
-ModelCam_E4-B128-A825T
-accuracy: 0.9438 - loss: 0.1762 - val_accuracy: 0.8768 - val_loss: 0.3799
+        layers.Flatten(),
+        # layers.Dense(16, activation="relu"),
+        # layers.Dropout(0.5),
+        # layers.BatchNormalization(),
+        layers.Dense(nb_classes, activation="softmax"),
+    ]
+)

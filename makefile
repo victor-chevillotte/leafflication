@@ -18,6 +18,9 @@ clean:
 
 fclean: clean
 	rm -rf $(VENV) dist
+	rm -f models/*
+	rm -rf trainingData
+	rm -rf temp/*
 	@echo "Fclean ok."
 
 re: fclean all
