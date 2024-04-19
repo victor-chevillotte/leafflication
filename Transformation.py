@@ -116,7 +116,7 @@ def parse_arguments() -> argparse.Namespace:
         type=bool,
         action=argparse.BooleanOptionalAction,
         dest="all",
-        help="Apply all processing.",
+        help="Apply all processings.",
         default=False,
     )
     args = parser.parse_args()

@@ -1,13 +1,17 @@
 import argparse
 import os
 import matplotlib.pyplot as plt
-
-# import cv2
-# import numpy as np
-# from utils import plt_to_numpy_image, cv2_imshow_wrapper
-
+from typing import List
+from dataclasses import dataclass
 
 IMAGE_EXTENSIONS = [".jpg"]
+
+
+@dataclass
+class ImageCategory:
+    path: str
+    name: str
+    count: int
 
 
 def create_bar_chart(values, names, title, xlabel, ylabel, colors, axis):
@@ -28,10 +32,11 @@ def create_pie_chart(values, names, title, colors, axis):
 
 
 def create_text(ax, text):
-    ax.text(0.5, 0.5, text, ha='center', va='center')
-    ax.axis('off')
+    ax.text(0.5, 0.5, text, ha="center", va="center")
+    ax.axis("off")
 
-def get_images_count(dir_path):
+
+def get_images_count(dir_path: str) -> List[ImageCategory]:
     images_count = []
     for path, _, files in os.walk(dir_path):
         dir_count = 0
@@ -42,7 +47,9 @@ def get_images_count(dir_path):
                     break
         if dir_count > 0:
             images_count.append(
-                {"path": path, "name": path.split("/")[-1], "count": dir_count}
+                ImageCategory(
+                    path=path, name=path.split("/")[-1], count=dir_count
+                )
             )
     return images_count
 
@@ -50,36 +57,34 @@ def get_images_count(dir_path):
 def main():
     try:
         parser = argparse.ArgumentParser(description="Distribution")
-        parser.add_argument("-d", type=str, help="Directory name")
+        parser.add_argument("directory", type=str, help="Directory name")
         args = parser.parse_args()
-        if args.d:
-            dir_path = args.d
+        if args.directory:
+            dir_path = args.directory
             if not os.path.exists(dir_path):
                 raise Exception("Directory doesn't exist")
         else:
             raise Exception("No directory provided")
         images_count = get_images_count(dir_path)
-        counts = [dir["count"] for dir in images_count]
+        counts = [category.count for category in images_count]
         if len(counts) <= 0:
             raise Exception("No images found")
-        names = [dir["name"] for dir in images_count]
+        names = [category.name for category in images_count]
         cmap = plt.get_cmap("tab20")
         colors = [cmap(i % 20) for i in range(len(counts))]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 10))
         create_bar_chart(
-            counts, names, "", "Directories", "Images count", colors, ax1
+            counts, names, "", "Categories", "Images count", colors, ax1
         )
         create_pie_chart(counts, names, "", colors, ax2)
-
-        # canvas = fig.canvas
-        # image = plt_to_numpy_image(canvas)
-        # cv2_imshow_wrapper("Distribution", image)
-
+        fig.suptitle("Distribution")
         plt.show()
     except argparse.ArgumentError as e:
         print(f"Error with arguments: {e}")
     except Exception as e:
         print(f"An error has occured : {e}")
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

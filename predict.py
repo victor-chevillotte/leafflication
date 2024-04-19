@@ -9,8 +9,9 @@ from Transformation import (
     Config,
     write_images,
     apply_transformation,
-    read_images
+    read_images,
 )
+
 # from PyQt5.QtWidgets import (
 #     QApplication,
 #     QWidget,
@@ -48,7 +49,7 @@ def predict_image(model, image_path, class_names):
     # Load the image
     img_height = 256
     img_width = 256
-    
+
     image = read_images([image_path])
     config = Config(
         blur=False,
@@ -63,11 +64,7 @@ def predict_image(model, image_path, class_names):
     register_dir = "temp"
     transformed_images = apply_transformation(image[0], config)
     if transformed_images:
-        write_images(
-            "temp",
-            [transformed_images],
-            config
-        )
+        write_images("temp", [transformed_images], config)
     image_path = image_path.split("/")[-1].split(".")[0]
     new_file_path = f"{image_path}_mask.JPG"
     image_path = f"{register_dir}/{new_file_path}"
