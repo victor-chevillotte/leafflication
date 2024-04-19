@@ -12,14 +12,14 @@ from distribution import get_images_count
 class TransformData:
 
     @staticmethod
-    def transform_data(dir_path):
+    def transform_data(dir_path, option="mask"):
         config = Config(
-            blur=False,
-            mask=True,
-            roi=False,
-            analyse=False,
-            pseudolandmarks=False,
-            color=False,
+            blur=True if option == "blur" else False,
+            mask=True if option == "mask" else False,
+            roi=True if option == "roi" else False,
+            analyse=True if option == "analyse" else False,
+            pseudolandmarks=True if option == "pseudolandmarks" else False,
+            color=True if option == "color" else False,
             src="",
             dst="",
         )
