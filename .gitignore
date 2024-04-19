@@ -223,4 +223,5 @@ data/*
 *.h5
 trainingData
 temp/*
+!temp/.gitkeep
 models
