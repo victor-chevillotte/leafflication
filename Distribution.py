@@ -1,17 +1,7 @@
 import argparse
 import os
 import matplotlib.pyplot as plt
-from typing import List
-from dataclasses import dataclass
-
-IMAGE_EXTENSIONS = [".jpg"]
-
-
-@dataclass
-class ImageCategory:
-    path: str
-    name: str
-    count: int
+from utils.utils import get_images_count
 
 
 def create_bar_chart(values, names, title, xlabel, ylabel, colors, axis):
@@ -34,24 +24,6 @@ def create_pie_chart(values, names, title, colors, axis):
 def create_text(ax, text):
     ax.text(0.5, 0.5, text, ha="center", va="center")
     ax.axis("off")
-
-
-def get_images_count(dir_path: str) -> List[ImageCategory]:
-    images_count = []
-    for path, _, files in os.walk(dir_path):
-        dir_count = 0
-        for file in files:
-            for ext in IMAGE_EXTENSIONS:
-                if file.endswith(ext.upper()):
-                    dir_count += 1
-                    break
-        if dir_count > 0:
-            images_count.append(
-                ImageCategory(
-                    path=path, name=path.split("/")[-1], count=dir_count
-                )
-            )
-    return images_count
 
 
 def main():

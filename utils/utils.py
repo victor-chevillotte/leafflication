@@ -1,9 +1,68 @@
 import os
+import cv2
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from Distribution import get_images_count
 from dataclasses import dataclass
+from matplotlib.backends.backend_agg import FigureCanvasBase
+from typing import List
+
+IMAGE_EXTENSIONS = [".jpg"]
+
+
+@dataclass
+class ImageCategory:
+    path: str
+    name: str
+    count: int
+
+
+def get_images_count(dir_path: str) -> List[ImageCategory]:
+    images_count = []
+    for path, _, files in os.walk(dir_path):
+        dir_count = 0
+        for file in files:
+            for ext in IMAGE_EXTENSIONS:
+                if file.endswith(ext.upper()):
+                    dir_count += 1
+                    break
+        if dir_count > 0:
+            images_count.append(
+                ImageCategory(
+                    path=path, name=path.split("/")[-1], count=dir_count
+                )
+            )
+    return images_count
+
+
+def plt_to_numpy_image(canvas: FigureCanvasBase) -> np.ndarray:
+    canvas.draw()
+    image_flat = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
+    image = image_flat.reshape(*reversed(canvas.get_width_height()), 3)
+    return image
+
+
+def cv2_imshow_wrapper(window_name: str, image: np.ndarray):
+    cv2.imshow(window_name, image)
+    wait_time = 1000
+    while cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) >= 1:
+        keyCode = cv2.waitKey(wait_time)
+        if (keyCode & 0xFF) == ord("q"):
+            cv2.destroyAllWindows()
+            break
+
+
+def pyqt_setup():
+    VIRTUAL_ENV_PATH = os.environ.get("VIRTUAL_ENV")
+    if VIRTUAL_ENV_PATH is None:
+        print("Virtual environment not found.")
+        print("Please activate the virtual environment.")
+        exit(1)
+    QT_PLUGIN_PATH = os.path.join(
+        VIRTUAL_ENV_PATH,
+        "lib/python3.10/site-packages/cv2/qt/plugins/platforms",
+    )
+    os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = QT_PLUGIN_PATH
 
 
 @dataclass
