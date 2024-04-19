@@ -1,3 +1,4 @@
+import argparse
 import sys
 import cv2
 import numpy as np
@@ -147,7 +148,6 @@ def display_augmented_images(
             break
 
 
-# TODO: Add augmentation type as parameter
 def augmentation(image, file_path, hide_display_option):
     # Apply each augmentation and save the augmented image
     flipped_image = flip_image(image)
@@ -197,52 +197,51 @@ def augment_folder(
             print(f"Error processing {file_name}: {e}")
 
 
-def parse_arguments(args) -> tuple:
-    folder_path = None
-    limit = None
-    image_path = None
-    hide_display_option = False
-
-    if "--folder" in args:
-        folder_index = args.index("--folder")
-        if folder_index + 1 < len(args):
-            folder_path = args[folder_index + 1]
-
-    if "--hide" in args:
-        hide_display_option = True
-
-    if "--limit" in args:
-        limit_index = args.index("--limit")
-        if limit_index + 1 < len(args):
-            try:
-                limit = int(args[limit_index + 1])
-            except ValueError:
-                print("Limit must be a number")
-                exit(1)
-
-    # Default image path handling
-    if len(args) > 1 and not any(opt in args[1] for opt in ["-f", "-l"]):
-        image_path = args[1]
-
-    return image_path, folder_path, limit, hide_display_option
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Image augmentation script")
+    parser.add_argument(
+        "image_path",
+        nargs="?",
+        help="Path to the image file",
+    )
+    parser.add_argument(
+        "-d",
+        "--directory",
+        help="Path to the directory containing images (overrides path argument)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Limit the number of images to augment (applicable only for directory)",
+    )
+    parser.add_argument(
+        "--hide",
+        action="store_true",
+        help="Hide the display of augmented images",
+    )
+    return parser.parse_args()
 
 
 def main():
-    image_path, folder_path, limit, hide_display_option = parse_arguments(
-        sys.argv
-    )
-    if folder_path:
-        augment_folder(folder_path, limit, hide_display_option)
-    elif image_path:
-        image = read_image_file(image_path)
-        augmentation(image, image_path, hide_display_option)
+    args = parse_arguments()
+    if args.directory:
+        augment_folder(args.directory, args.limit, args.hide)
+    elif args.image_path:
+        if os.path.isdir(args.image_path):
+            augment_folder(args.image_path, args.limit, args.hide)
+        else:
+            image = read_image_file(args.image_path)
+            augmentation(image, args.image_path, args.hide)
     else:
         print(
-            "Usage: python augmentation.py [--folder /path/folder"
+            "Usage: Augmentation.py [-d /path/directory"
             "[--limit number] [--hide]] | [image_path] [--hide]"
         )
         exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
