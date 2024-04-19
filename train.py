@@ -11,35 +11,45 @@ from trainUtils.Utils import Utils
 
 def get_args():
     parser = argparse.ArgumentParser(description="Training")
-    parser.add_argument("-d", type=str, help="Directory path")
-    parser.add_argument("-n", type=str, help="Model name")
-    parser.add_argument("--e", type=int, help="Epochs")
-    parser.add_argument("--b", type=int, help="Batch size")
-    parser.add_argument("--s", type=int, help="Seed")
     parser.add_argument(
-        "--v",
+        "-d", "--directory", type=str, dest="d", help="Directory path"
+    )
+    parser.add_argument("-n", "--name", dest="n", type=str, help="Model name")
+    parser.add_argument("-e", "--epoch", dest="e", type=int, help="Epochs")
+    parser.add_argument("-b", "--batch", dest="b", type=int, help="Batch size")
+    parser.add_argument("-s", "--seed", dest="s", type=int, help="Seed")
+    parser.add_argument(
+        "-v",
+        "--validation",
+        dest="v",
         type=int,
-        help="Percents of validation data"
+        help="Percents of validation data",
     )
     parser.add_argument(
-        "--a",
+        "-a",
+        "--augment",
+        dest="a",
         type=int,
-        help="Augment data with a minimum of images per class"
+        help="Augment data with a minimum of images per class",
     )
     parser.add_argument(
-        "--t",
+        "--no-transform",
         action="store_true",
-        help="Don't transform data"
+        dest="t",
+        help="Don't transform data",
     )
     parser.add_argument(
-        "--r",
+        "--no-augment",
+        dest="r",
         action="store_true",
-        help="Don't augment data"
+        help="Don't augment data",
     )
     parser.add_argument(
-        "--p",
+        "-p",
+        "--patience",
+        dest="p",
         type=int,
-        help="Patience for early stopping"
+        help="Patience for early stopping",
     )
     return parser.parse_args()
 
@@ -60,7 +70,7 @@ def data_augmentation(model_parameters, dir_for_training):
         model_parameters.img_per_class = AugmentData.augment_data(
             dir_for_training,
             model_parameters.augment_options,
-            model_parameters.img_per_class
+            model_parameters.img_per_class,
         )
 
         # Data transformation
@@ -70,8 +80,7 @@ def data_augmentation(model_parameters, dir_for_training):
         ):
             print("----- Transforming data -----")
             TransformData.transform_data(
-                dir_for_training,
-                model_parameters.transform_option
+                dir_for_training, model_parameters.transform_option
             )
 
     Utils.display_histogram_terminal(dir_for_training)
@@ -107,9 +116,7 @@ def get_data(
 
     AUTOTUNE = tf.data.AUTOTUNE
     train_data = (
-        train_data.cache()
-        .shuffle(1000)
-        .prefetch(buffer_size=AUTOTUNE)
+        train_data.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     )
     validation_data = validation_data.cache().prefetch(buffer_size=AUTOTUNE)
     # for performance
@@ -161,7 +168,7 @@ def main():
             "flipped",
             "rotated",
             "bright",
-            "cropped"
+            "cropped",
         ]
         model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)
@@ -170,34 +177,31 @@ def main():
         data_augmentation(model_parameters, dir_for_training)
 
         # Training
-        (
-            normalized_train_data,
-            normalized_validation_data,
-            class_names
-        ) = get_data(
-            dir_for_training,
-            model_parameters.batch_size,
-            model_parameters.seed,
-            model_parameters.validation_data,
-            model_parameters.img_size[0],
-            model_parameters.img_size[1],
+        (normalized_train_data, normalized_validation_data, class_names) = (
+            get_data(
+                dir_for_training,
+                model_parameters.batch_size,
+                model_parameters.seed,
+                model_parameters.validation_data,
+                model_parameters.img_size[0],
+                model_parameters.img_size[1],
+            )
         )
 
         model = build_model(
             model_parameters.img_size[0],
             model_parameters.img_size[1],
-            len(class_names)
+            len(class_names),
         )
         model.summary()
         stop_early = tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss',
-            patience=model_parameters.patience
+            monitor="val_loss", patience=model_parameters.patience
         )
         model.fit(
             normalized_train_data,
             validation_data=normalized_validation_data,
             epochs=model_parameters.epochs,
-            callbacks=[stop_early]
+            callbacks=[stop_early],
         )
 
         train_score = model.evaluate(normalized_train_data)
@@ -214,11 +218,7 @@ def main():
         if model_parameters.transform_data_flag:
             model_name += "T"
         Utils.save_model(
-            model,
-            model_name,
-            model_parameters,
-            train_score,
-            validation_score
+            model, model_name, model_parameters, train_score, validation_score
         )
     except Exception as e:
         print(f"An error has occured : {e}")
