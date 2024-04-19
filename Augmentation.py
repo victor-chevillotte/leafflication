@@ -102,7 +102,7 @@ def display_augmented_images(
     # Standardizing images by adding text and padding
     standardized_images = []
     for img, name in zip(images, names):
-        # Calculate the new width of the image to maintain aspect ratio, leaving space for padding
+        # Calculate the new width of the image to maintain aspect ratio
         height, width = img.shape[:2]
         padded_img = cv2.copyMakeBorder(
             img, 50, 10, 10, 10, cv2.BORDER_CONSTANT, value=(255, 255, 255)
@@ -131,9 +131,8 @@ def display_augmented_images(
     # Place images with padding
     current_x = 0
     for img in standardized_images:
-        concatenated_image[
-            : img.shape[0], current_x : current_x + img.shape[1]
-        ] = img
+        current_end_x = current_x + img.shape[1]
+        concatenated_image[: img.shape[0], current_x:current_end_x] = img
         current_x += (
             img.shape[1] + 10
         )  # Move to the next position with 10px padding
@@ -210,7 +209,6 @@ def parse_arguments(args) -> tuple:
             folder_path = args[folder_index + 1]
 
     if "--hide" in args:
-        hide_display_index = args.index("--hide")
         hide_display_option = True
 
     if "--limit" in args:
@@ -240,7 +238,8 @@ def main():
         augmentation(image, image_path, hide_display_option)
     else:
         print(
-            "Usage: python augmentation.py [--folder /path/folder [--limit number] [--hide]] | [image_path] [--hide]"
+            "Usage: python augmentation.py [--folder /path/folder"
+            "[--limit number] [--hide]] | [image_path] [--hide]"
         )
         exit(1)
 

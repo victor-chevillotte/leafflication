@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from distribution import get_images_count
+from Distribution import get_images_count
 from dataclasses import dataclass
 
 
@@ -62,21 +62,25 @@ class Utils:
         if args.v:
             validation_data_percents = args.v
             if validation_data_percents < 10:
-                raise Exception("Percents of validation data must be "
-                                "greater than 10")
+                raise Exception(
+                    "Percents of validation data must be " "greater than 10"
+                )
             elif validation_data_percents > 50:
-                raise Exception("Percents of validation data must be "
-                                "less than 50")
+                raise Exception(
+                    "Percents of validation data must be " "less than 50"
+                )
         else:
             validation_data_percents = 20
         if args.a:
             img_per_class = args.a
             if img_per_class < 1:
-                raise Exception("Minimum images per class must be "
-                                "greater than 0")
+                raise Exception(
+                    "Minimum images per class must be " "greater than 0"
+                )
             elif img_per_class > 2000:
-                raise Exception("Minimum images per class must be "
-                                "less than 2000")
+                raise Exception(
+                    "Minimum images per class must be " "less than 2000"
+                )
         else:
             img_per_class = 600
         if args.t:
@@ -100,7 +104,7 @@ class Utils:
             validation_data_percents / 100,
             img_per_class,
             transform_data,
-            augment_data
+            augment_data,
         )
 
     @staticmethod
@@ -156,16 +160,14 @@ class Utils:
             if os.path.exists(f"models/{model_name}.keras"):
                 model_name = model_name + "_1"
                 while os.path.exists(f"models/{model_name}.keras"):
-                    model_name = model_name[:-1] + str(
-                        int(model_name[-1]) + 1
-                    )
+                    model_name = model_name[:-1] + str(int(model_name[-1]) + 1)
             model.save(f"models/{model_name}.keras")
 
             compile_info = {
                 "optimizer": str(model.optimizer.__class__.__name__),
                 "loss": model.loss,
                 "metrics": model.metrics_names,
-                "optimizer_config": model.optimizer.get_config()
+                "optimizer_config": model.optimizer.get_config(),
             }
 
             parameters = {
@@ -179,21 +181,21 @@ class Utils:
                 "augment_options": params.augment_options,
                 "transform_options": params.transform_option,
                 "img_size": params.img_size,
-                "patience": params.patience
+                "patience": params.patience,
             }
 
             score = {
                 "train_loss": train_score[0],
                 "train_accuracy": train_score[1],
                 "validation_loss": validation_score[0],
-                "validation_accuracy": validation_score[1]
+                "validation_accuracy": validation_score[1],
             }
 
             model_info = {
                 "score": score,
                 "parameters": parameters,
                 "compile_infos": compile_info,
-                "architecture": []
+                "architecture": [],
             }
 
             for layer in model.layers:
@@ -202,14 +204,13 @@ class Utils:
                     "type": layer.__class__.__name__,
                     "units": layer_config.get("units"),
                     "activation": layer_config.get("activation"),
-                    "padding": layer_config.get("padding")
+                    "padding": layer_config.get("padding"),
                 }
                 model_info["architecture"].append(layer_info)
 
             model_json = json.dumps(model_info, indent=4)
             with open(
-                f"models_config_saved/{model_name}.json",
-                "w"
+                f"models_config_saved/{model_name}.json", "w"
             ) as json_file:
                 json_file.write(model_json)
 

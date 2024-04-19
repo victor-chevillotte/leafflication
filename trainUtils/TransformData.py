@@ -6,7 +6,7 @@ from Transformation import (
     apply_transformation,
     read_images
 )
-from distribution import get_images_count
+from Distribution import get_images_count
 
 
 class TransformData:
