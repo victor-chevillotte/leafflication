@@ -1,5 +1,4 @@
 import argparse
-import sys
 import cv2
 import numpy as np
 import os
@@ -207,12 +206,12 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-d",
         "--directory",
-        help="Path to the directory containing images (overrides path argument)",
+        help="Path to the directory containing images",
     )
     parser.add_argument(
         "--limit",
         type=int,
-        help="Limit the number of images to augment (applicable only for directory)",
+        help="Limit the number of images in directory to augment",
     )
     parser.add_argument(
         "--hide",
