@@ -1,4 +1,5 @@
 import os
+import re
 from Augmentation import (
     read_image_file,
     flip_image,
@@ -52,6 +53,11 @@ class AugmentData:
                     augmentation_options,
                 )
                 print(f"{nb_img_added} images added to {category.name}")
+            else:
+                AugmentData.remove_files(
+                    category.path,
+                    category.count - img_per_class
+                )
         print(f"Each class has now {img_per_class} images minimum")
         print()
         return img_per_class
@@ -60,20 +66,21 @@ class AugmentData:
     def augment_class(dir_path, count, img_per_class, augmentation_options):
         j = 0
         additional_images = img_per_class - count
-        for i in range(len(augmentation_options)):
-            for y in range(count):
-                image_path = f"{dir_path}/image ({y + 1}).JPG"
-                if os.path.exists(image_path):
-                    try:
-                        image = read_image_file(image_path)
-                        AugmentData.augmentation(
-                            image, image_path, augmentation_options[i]
-                        )
-                        j += 1
-                        if j >= additional_images:
-                            return j
-                    except Exception:
-                        None
+        if additional_images > 0:
+            for i in range(len(augmentation_options)):
+                for y in range(count):
+                    image_path = f"{dir_path}/image ({y + 1}).JPG"
+                    if os.path.exists(image_path):
+                        try:
+                            image = read_image_file(image_path)
+                            AugmentData.augmentation(
+                                image, image_path, augmentation_options[i]
+                            )
+                            j += 1
+                            if j >= additional_images:
+                                return j
+                        except Exception:
+                            None
 
     @staticmethod
     def augmentation(image, file_path, augmentation_options):
@@ -89,3 +96,34 @@ class AugmentData:
         if "cropped" in augmentation_options:
             cropped_image = crop_image(image)
             save_augmented_image(cropped_image, file_path, "cropped")
+
+    @staticmethod
+    def remove_files(dir_path, nb_files_to_remove):
+        try:
+            print(f"Removing {nb_files_to_remove} files from {dir_path}")
+            highest, jpg_count = AugmentData.get_count_and_highest_number(
+                dir_path
+            )
+            for i in range(highest):
+                file_path = f"{dir_path}/image ({highest - i}).JPG"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    nb_files_to_remove -= 1
+                if nb_files_to_remove <= 0:
+                    break
+        except Exception as e:
+            print(f"Error while removing files: {e}")
+
+    @staticmethod
+    def get_count_and_highest_number(dir_path):
+        highest = None
+        jpg_count = 0
+        pattern = r"image \((\d+)\)\.JPG"
+        for file in os.listdir(dir_path):
+            match = re.match(pattern, file)
+            if match:
+                number = int(match.group(1))
+                jpg_count += 1
+                if highest is None or number > highest:
+                    highest = number
+        return highest, jpg_count
