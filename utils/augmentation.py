@@ -8,7 +8,7 @@ from Augmentation import (
     crop_image,
     save_augmented_image,
 )
-from Distribution import get_images_count
+from utils.utils import get_images_count
 
 
 class AugmentData:

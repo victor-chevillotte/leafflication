@@ -4,9 +4,9 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 import shutil
 from keras_tuner import RandomSearch
-from trainUtils.AugmentData import AugmentData
-from trainUtils.TransformData import TransformData
-from trainUtils.Utils import Utils
+from utils.augmentation import AugmentData
+from utils.transformation import TransformData
+from utils.utils import Utils
 from train import get_data
 
 

@@ -4,9 +4,9 @@ import os
 import shutil
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from trainUtils.AugmentData import AugmentData
-from trainUtils.TransformData import TransformData
-from trainUtils.Utils import Utils
+from utils.augmentation import AugmentData
+from utils.transformation import TransformData
+from utils.utils import Utils
 
 
 def get_args():
