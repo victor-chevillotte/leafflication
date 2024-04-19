@@ -163,7 +163,7 @@ def main():
             "bright",
             "cropped"
         ]
-        model_parameters.transform_options = "mask"
+        model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)
         dir_for_training = "trainingData"
 
