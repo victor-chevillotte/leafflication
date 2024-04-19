@@ -1,0 +1,11 @@
+[flake8]
+exclude =
+    __pycache__
+    venv
+    .venv
+    data
+    trainingData
+    docs
+    models
+    models_config_saved
+
