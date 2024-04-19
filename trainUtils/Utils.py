@@ -133,8 +133,8 @@ class Utils:
     def display_histogram_terminal(dir_path):
         try:
             images_count = get_images_count(dir_path)
-            values = [dir["count"] for dir in images_count]
-            names = [dir["name"] for dir in images_count]
+            values = [category.count for category in images_count]
+            names = [category.name for category in images_count]
             if len(values) != len(names):
                 raise Exception("Values and names must have the same length")
             if len(values) <= 0 or len(names) <= 0:
