@@ -1,25 +1,23 @@
 import os
-from augmentation import (
+from Augmentation import (
     read_image_file,
     flip_image,
     rotate_image,
     bright_image,
     crop_image,
-    save_augmented_image
+    save_augmented_image,
 )
-from distribution import get_images_count
+from Distribution import get_images_count
 
 
 class AugmentData:
 
     @staticmethod
-    def augment_data(dir_path, augmentation_options, img_per_class=600):
+    def augment_data(
+        dir_path: str, augmentation_options: list, img_per_class=600
+    ):
         images_class = get_images_count(dir_path)
-        # TODO: Create interface for images_class
-        # images_class = [{path, name, count}]
-        # example : images_class = [{'path': 'trainingData/Apple_Black_rot',
-        # 'name': 'Apple_Black_rot', 'count': 620}]
-        counts = [dir["count"] for dir in images_class]
+        counts = [category.count for category in images_class]
         if len(counts) <= 0:
             raise Exception("No images found")
 
@@ -39,21 +37,21 @@ class AugmentData:
             )
             img_per_class = min(counts) * (len(augmentation_options) + 1)
 
-        for img_class in images_class:
+        for category in images_class:
             # Augment the class if it has less than the minimum number of
             # images per class
-            if img_class["count"] < img_per_class:
+            if category.count < img_per_class:
                 print(
-                    f"Augmenting {img_class['name']} class, "
-                    f"{img_class['count']} images"
+                    f"Augmenting {category.name} class, "
+                    f"{category.count} images"
                 )
                 nb_img_added = AugmentData.augment_class(
-                    img_class["path"],
-                    img_class["count"],
+                    category.path,
+                    category.count,
                     img_per_class,
                     augmentation_options,
                 )
-                print(f"{nb_img_added} images added to {img_class['name']}")
+                print(f"{nb_img_added} images added to {category.name}")
         print(f"Each class has now {img_per_class} images minimum")
         print()
         return img_per_class
@@ -69,9 +67,7 @@ class AugmentData:
                     try:
                         image = read_image_file(image_path)
                         AugmentData.augmentation(
-                            image,
-                            image_path,
-                            augmentation_options[i]
+                            image, image_path, augmentation_options[i]
                         )
                         j += 1
                         if j >= additional_images:
