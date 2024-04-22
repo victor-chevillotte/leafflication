@@ -24,7 +24,7 @@ def testDir(dir_path, model_name):
                 "predict.py",
                 "-m",
                 model_name,
-                "--i",
+                "-i",
                 file_path,
             ]
 
