@@ -100,7 +100,7 @@ class Utils:
             epochs = args.e
             if epochs < 1:
                 raise Exception("Epochs must be greater than 0")
-            elif epochs > 10:
+            elif epochs > 50:
                 raise Exception("Epochs must be less than 10")
         else:
             epochs = 6
