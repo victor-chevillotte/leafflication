@@ -1,0 +1,110 @@
+{
+    "score": {
+        "train_loss": 0.08745013177394867,
+        "train_accuracy": 0.9713541865348816,
+        "validation_loss": 0.28284379839897156,
+        "validation_accuracy": 0.9072916507720947
+    },
+    "parameters": {
+        "epochs": 2,
+        "batch_size": 8,
+        "seed": 791,
+        "validation_data_percents": 0.2,
+        "img_per_class": 1200,
+        "transform_data_flag": true,
+        "augment_data_flag": true,
+        "augment_options": [
+            "bright",
+            "cropped",
+            "flipped",
+            "rotated"
+        ],
+        "transform_options": "mask",
+        "img_size": [
+            256,
+            256
+        ],
+        "patience": 2
+    },
+    "compile_infos": {
+        "optimizer": "Adam",
+        "loss": "sparse_categorical_crossentropy",
+        "metrics": [
+            "loss",
+            "compile_metrics"
+        ],
+        "optimizer_config": {
+            "name": "adam",
+            "learning_rate": 0.0010000000474974513,
+            "weight_decay": null,
+            "clipnorm": null,
+            "global_clipnorm": null,
+            "clipvalue": null,
+            "use_ema": false,
+            "ema_momentum": 0.99,
+            "ema_overwrite_frequency": null,
+            "loss_scale_factor": null,
+            "gradient_accumulation_steps": null,
+            "beta_1": 0.9,
+            "beta_2": 0.999,
+            "epsilon": 1e-07,
+            "amsgrad": false
+        }
+    },
+    "architecture": [
+        {
+            "type": "Conv2D",
+            "units": null,
+            "activation": "relu",
+            "padding": "same"
+        },
+        {
+            "type": "MaxPooling2D",
+            "units": null,
+            "activation": null,
+            "padding": "valid"
+        },
+        {
+            "type": "Conv2D",
+            "units": null,
+            "activation": "relu",
+            "padding": "same"
+        },
+        {
+            "type": "MaxPooling2D",
+            "units": null,
+            "activation": null,
+            "padding": "valid"
+        },
+        {
+            "type": "Conv2D",
+            "units": null,
+            "activation": "relu",
+            "padding": "same"
+        },
+        {
+            "type": "MaxPooling2D",
+            "units": null,
+            "activation": null,
+            "padding": "valid"
+        },
+        {
+            "type": "Flatten",
+            "units": null,
+            "activation": null,
+            "padding": null
+        },
+        {
+            "type": "Dense",
+            "units": 128,
+            "activation": "relu",
+            "padding": null
+        },
+        {
+            "type": "Dense",
+            "units": 8,
+            "activation": "softmax",
+            "padding": null
+        }
+    ]
+}

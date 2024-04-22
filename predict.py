@@ -118,9 +118,13 @@ def predict_image(model, image_path, class_names):
 
     # Predicted class
     if predicted_class in image_path:
-        predictedClassLabel = QLabel(f"predicted class = <font color='green'>{predicted_class}</font>")
+        predictedClassLabel = QLabel(
+            f"predicted class = <font color='green'>{predicted_class}</font>"
+        )
     else:
-        predictedClassLabel = QLabel(f"predicted class = <font color='red'>{predicted_class}</font>")
+        predictedClassLabel = QLabel(
+            f"predicted class = <font color='red'>{predicted_class}</font>"
+        )
     predictedClassLabel.setAlignment(Qt.AlignCenter)
 
     # Adding widgets to the main layout
