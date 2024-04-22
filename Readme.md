@@ -117,8 +117,29 @@ The `-dst` flag is used to specify the destination folder for the transformed im
 ## Classification
 
 ### Model Training
+For the training of our model, we start by augmenting the data. We set a threshold of images per class. Classes that do not have as many images as required are augmented using [Augmentation](####Augmentation) functions. Classes that have more images than the threshold are reduced by removing images until the threshold is reached. All images are then transformed using the mask [Transformation](####Transformation) function to remove the background of the image, which can influence the model.
 
+Our model is built with TensorFlow, using 5 different types of layers:
+- **Input**: This layer serves as the entry point for the data. It specifies the shape of the input data, for example, images of 256x256 pixels with 3 channels (RGB).
+- **Conv2D**: This layer applies a convolution that helps extract features from the images.
+- **MaxPooling2D**: This layer reduces the dimensionality of each feature map while retaining the most important features. It is used to reduce overfitting and improve the efficiency of the model.
+- **Flatten**: This layer flattens the data into a vector so that it can be processed by dense layers.
+- **Dense**: This layer connects each input to every output through a set of weights. It is generally used to classify the extracted features into the final classes.
 
+Our model is composed as follows:
+- 1 Input layer
+- 1 Conv2D / MaxPooling2D layer with 16 neurons
+- 1 Conv2D / MaxPooling2D layer with 32 neurons
+- 1 Conv2D / MaxPooling2D layer with 64 neurons
+- 1 Flatten layer
+- 1 Dense layer with 128 neurons
+- 1 Dense layer with as many neurons as there are different classes
+
+After the augmentation and transformation of the images, our model is trained with the following hyperparameters:
+- **epochs**: The number of epochs represents the number of times the entire dataset is passed through the neural network during training.
+- **batch_size**: The batch size determines the number of data samples processed before the model updates its internal parameters.
+- **number of images per class**
+- **seed**: The random seed is used to ensure the reproducibility of the training results. It ensures that the random selections in the training process can be reproduced.
 
 
 ### Model Evaluation

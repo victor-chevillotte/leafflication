@@ -1,21 +1,24 @@
 {
+    "note": "8/10",
     "score": {
-        "train_loss": 0.05385071411728859,
-        "train_accuracy": 0.9902332425117493,
-        "validation_loss": 0.2233276069164276,
-        "validation_accuracy": 0.9241982698440552
+        "train_loss": 0.09233162552118301,
+        "train_accuracy": 0.9699519276618958,
+        "validation_loss": 0.24877633154392242,
+        "validation_accuracy": 0.9230769276618958
     },
     "parameters": {
-        "epochs": 3,
-        "batch_size": 16,
-        "seed": 691,
+        "epochs": 2,
+        "batch_size": 8,
+        "seed": 182,
         "validation_data_percents": 0.2,
-        "img_per_class": 825,
+        "img_per_class": 1300,
         "transform_data_flag": true,
         "augment_data_flag": true,
         "augment_options": [
             "bright",
-            "cropped"
+            "cropped",
+            "flipped",
+            "rotated"
         ],
         "transform_options": "mask",
         "img_size": [
