@@ -42,8 +42,8 @@ def shear_image(image):
 def crop_image(image):
     # Crop the central part of the image
     height, width = image.shape[:2]
-    start_row, start_col = int(height * 0.05), int(width * 0.05)
-    end_row, end_col = int(height * 0.95), int(width * 0.95)
+    start_row, start_col = int(height * 0.07), int(width * 0.07)
+    end_row, end_col = int(height * 0.90), int(width * 0.90)
     return image[start_row:end_row, start_col:end_col]
 
 
@@ -67,7 +67,12 @@ def distort_image(image):
 
 def bright_image(image):
     # Apply contrast and brightness to the image
-    return cv2.convertScaleAbs(image, alpha=1.5)
+    return cv2.convertScaleAbs(image, alpha=1.7)
+
+
+def blur_image(image):
+    # Apply Gaussian blur to the image
+    return cv2.GaussianBlur(image, (5, 5), 0)
 
 
 def display_augmented_images(
@@ -78,6 +83,7 @@ def display_augmented_images(
     sheared_image,
     distorted_image,
     brighter_image,
+    blurred_image,
 ):
     # Image names for display
     names = [
@@ -88,6 +94,7 @@ def display_augmented_images(
         "Sheared",
         "Distorted",
         "Brighter",
+        "Blur",
     ]
     images = [
         original_image,
@@ -97,6 +104,7 @@ def display_augmented_images(
         sheared_image,
         distorted_image,
         brighter_image,
+        blurred_image,
     ]
 
     # Standardizing images by adding text and padding
@@ -161,6 +169,9 @@ def augmentation(image, file_path, hide_display_option):
     save_augmented_image(distorted_image, file_path, "distorted")
     brighter_image = bright_image(image)
     save_augmented_image(brighter_image, file_path, "bright")
+    blurred_image = blur_image(image)
+    save_augmented_image(blurred_image, file_path, "blurred")
+
     if not hide_display_option:
         display_augmented_images(
             image,
@@ -170,6 +181,7 @@ def augmentation(image, file_path, hide_display_option):
             sheared_image,
             distorted_image,
             brighter_image,
+            blurred_image,
         )
 
 
