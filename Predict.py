@@ -66,6 +66,7 @@ def predict_image(model, image_path, class_names):
     if transformed_images:
         write_images("temp", [transformed_images], config)
     split_image_path = image_path.split("/")[-1].split(".")[0]
+    real_class_name = image_path.split("/")[-2]
     new_file_path = f"{split_image_path}_mask.JPG"
     transformed_image_path = f"{register_dir}/{new_file_path}"
     print(f"Transformed image path : {transformed_image_path}")
@@ -117,7 +118,10 @@ def predict_image(model, image_path, class_names):
     titleLabel.setAlignment(Qt.AlignCenter)
 
     # Predicted class
-    predictedClassLabel = QLabel(f"predicted class = {predicted_class}")
+    if real_class_name == predicted_class:
+        predictedClassLabel = QLabel(f"predicted class = <font color='green'>{predicted_class}</font>")
+    else:
+        predictedClassLabel = QLabel(f"predicted class = <font color='red'>{predicted_class}</font>")
     predictedClassLabel.setAlignment(Qt.AlignCenter)
 
     # Adding widgets to the main layout
