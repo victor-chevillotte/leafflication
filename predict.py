@@ -12,15 +12,15 @@ from Transformation import (
     read_images,
 )
 
-# from PyQt5.QtWidgets import (
-#     QApplication,
-#     QWidget,
-#     QLabel,
-#     QVBoxLayout,
-#     QHBoxLayout,
-# )
-# from PyQt5.QtGui import QPixmap
-# from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+)
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 
 
 def parse_args(args):
@@ -65,13 +65,13 @@ def predict_image(model, image_path, class_names):
     transformed_images = apply_transformation(image[0], config)
     if transformed_images:
         write_images("temp", [transformed_images], config)
-    image_path = image_path.split("/")[-1].split(".")[0]
-    new_file_path = f"{image_path}_mask.JPG"
-    image_path = f"{register_dir}/{new_file_path}"
-    print(f"Transformed image path : {image_path}")
+    split_image_path = image_path.split("/")[-1].split(".")[0]
+    new_file_path = f"{split_image_path}_mask.JPG"
+    transformed_image_path = f"{register_dir}/{new_file_path}"
+    print(f"Transformed image path : {transformed_image_path}")
 
     image_pil = tf.keras.preprocessing.image.load_img(
-        image_path, target_size=(img_height, img_width)
+        transformed_image_path, target_size=(img_height, img_width)
     )
     img_array = tf.keras.utils.img_to_array(image_pil)
     img_array = tf.expand_dims(img_array, 0)
@@ -86,50 +86,53 @@ def predict_image(model, image_path, class_names):
     # open widow showing original image side to side with transformed image
     # below them showing the predicted class
 
-    # app = QApplication([])
+    app = QApplication([])
 
-    # window = QWidget()
+    window = QWidget()
 
-    # window.setWindowTitle("PyQt Image Display Example")
-    # window.setGeometry(100, 100, 800, 600)  # Position x, y, width, height
+    window.setWindowTitle("PyQt Image Display Example")
+    window.setGeometry(100, 100, 800, 600)  # Position x, y, width, height
 
-    # # Layouts
-    # mainLayout = QVBoxLayout()
-    # imagesLayout = QHBoxLayout()
+    # Layouts
+    mainLayout = QVBoxLayout()
+    imagesLayout = QHBoxLayout()
 
-    # # Images
-    # image1 = QLabel()
-    # pixmap1 = QPixmap(image_path)
-    # image1.setPixmap(pixmap1)
-    # image1.setAlignment(Qt.AlignCenter)
+    # Images
+    image1 = QLabel()
+    pixmap1 = QPixmap(image_path)
+    image1.setPixmap(pixmap1)
+    image1.setAlignment(Qt.AlignCenter)
 
-    # image2 = QLabel()
-    # pixmap2 = QPixmap(image_path)
-    # image2.setPixmap(pixmap2)
-    # image2.setAlignment(Qt.AlignCenter)
+    image2 = QLabel()
+    pixmap2 = QPixmap(transformed_image_path)
+    image2.setPixmap(pixmap2)
+    image2.setAlignment(Qt.AlignCenter)
 
-    # # Adding images to the images layout
-    # imagesLayout.addWidget(image1)
-    # imagesLayout.addWidget(image2)
+    # Adding images to the images layout
+    imagesLayout.addWidget(image1)
+    imagesLayout.addWidget(image2)
 
-    # # Title
-    # titleLabel = QLabel("=== DL Classification ===")
-    # titleLabel.setAlignment(Qt.AlignCenter)
+    # Title
+    titleLabel = QLabel("=== DL Classification ===")
+    titleLabel.setAlignment(Qt.AlignCenter)
 
-    # # Predicted class
-    # predictedClassLabel = QLabel(f"predicted class = {predicted_class}")
-    # predictedClassLabel.setAlignment(Qt.AlignCenter)
+    # Predicted class
+    if predicted_class in image_path:
+        predictedClassLabel = QLabel(f"predicted class = <font color='green'>{predicted_class}</font>")
+    else:
+        predictedClassLabel = QLabel(f"predicted class = <font color='red'>{predicted_class}</font>")
+    predictedClassLabel.setAlignment(Qt.AlignCenter)
 
-    # # Adding widgets to the main layout
-    # mainLayout.addLayout(imagesLayout)
-    # mainLayout.addWidget(titleLabel)
-    # mainLayout.addWidget(predictedClassLabel)
+    # Adding widgets to the main layout
+    mainLayout.addLayout(imagesLayout)
+    mainLayout.addWidget(titleLabel)
+    mainLayout.addWidget(predictedClassLabel)
 
-    # # Set the main layout of the window
-    # window.setLayout(mainLayout)
-    # window.show()
+    # Set the main layout of the window
+    window.setLayout(mainLayout)
+    window.show()
 
-    # app.exec_()
+    app.exec_()
 
 
 def predict_directory(model, dir_path, class_names):
@@ -191,8 +194,8 @@ def main():
     try:
         parser = argparse.ArgumentParser(description="Prediction")
         parser.add_argument("-m", type=str, help="Model file path")
-        parser.add_argument("--i", type=str, help="Image file path")
-        parser.add_argument("--d", type=str, help="Directory path")
+        parser.add_argument("-i", type=str, help="Image file path")
+        parser.add_argument("-d", type=str, help="Directory path")
         args = parser.parse_args()
         model_path, image_path, dir_path = parse_args(args)
         print(model_path, image_path, dir_path)

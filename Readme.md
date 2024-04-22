@@ -55,7 +55,7 @@ python3 Train.py -d data/leaves/images -n <model_name> --e <epoch_number> --b <b
 
 - Predict the class of an image
 ```bash
-python3 Predict.py -i <image_path> -m <model_name>
+python3 predict.py -i <image_path> -m <model_name>
 ```
 
 ## Data Exploration
