@@ -1,4 +1,5 @@
 {
+    "note": "9/10",
     "score": {
         "train_loss": 0.08719153702259064,
         "train_accuracy": 0.96875,
