@@ -166,8 +166,11 @@ def main():
         model_parameters = Utils.parse_args(args)
         model_parameters.augment_options = [
             "flipped",
-            "rotated",
+            "distorted",
+            "sheared",
             "bright",
+            "rotated",
+            "blurred",
             "cropped",
         ]
         model_parameters.transform_option = "mask"

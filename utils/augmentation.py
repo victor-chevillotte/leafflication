@@ -6,6 +6,9 @@ from Augmentation import (
     rotate_image,
     bright_image,
     crop_image,
+    blur_image,
+    shear_image,
+    distort_image,
     save_augmented_image,
 )
 from utils.utils import get_images_count
@@ -55,8 +58,7 @@ class AugmentData:
                 print(f"{nb_img_added} images added to {category.name}")
             else:
                 AugmentData.remove_files(
-                    category.path,
-                    category.count - img_per_class
+                    category.path, category.count - img_per_class
                 )
         print(f"Each class has now {img_per_class} images minimum")
         print()
@@ -96,6 +98,15 @@ class AugmentData:
         if "cropped" in augmentation_options:
             cropped_image = crop_image(image)
             save_augmented_image(cropped_image, file_path, "cropped")
+        if "blurred" in augmentation_options:
+            blurred_image = blur_image(image)
+            save_augmented_image(blurred_image, file_path, "blurred")
+        if "sheared" in augmentation_options:
+            sheared_image = shear_image(image)
+            save_augmented_image(sheared_image, file_path, "sheared")
+        if "distorted" in augmentation_options:
+            distorted_image = distort_image(image)
+            save_augmented_image(distorted_image, file_path, "distorted")
 
     @staticmethod
     def remove_files(dir_path, nb_files_to_remove):

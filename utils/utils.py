@@ -136,10 +136,10 @@ class Utils:
                 raise Exception(
                     "Minimum images per class must be " "greater than 0"
                 )
-            elif img_per_class > 2000:
-                raise Exception(
-                    "Minimum images per class must be " "less than 2000"
-                )
+            # elif img_per_class > 2000:
+            #     raise Exception(
+            #         "Minimum images per class must be " "less than 2000"
+            #     )
         else:
             img_per_class = 600
         if args.t:
