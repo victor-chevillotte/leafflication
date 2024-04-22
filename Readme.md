@@ -128,15 +128,15 @@ The `-dst` flag is used to specify the destination folder for the transformed im
 ## For correction 
 
 ```bash
-python3 predict.py --i data/test_images/Unit_test1/Apple_Black_rot1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_healthy1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_healthy2.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test1/Apple_rust.JPG  -m first_saved_model.keras      
-python3 predict.py --i data/test_images/Unit_test1/Apple_scab.JPG  -m first_saved_model.keras      
+python3 predict.py -i data/test_images/Unit_test1/Apple_Black_rot1.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test1/Apple_healthy1.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test1/Apple_healthy2.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test1/Apple_rust.JPG  -m models/vic_E3-B8-A1300T.keras      
+python3 predict.py -i data/test_images/Unit_test1/Apple_scab.JPG  -m models/vic_E3-B8-A1300T.keras      
 
-python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot1.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_Black_rot2.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_Esca.JPG  -m first_saved_model.keras   
-python3 predict.py --i data/test_images/Unit_test2/Grape_healthy.JPG  -m first_saved_model.keras
-python3 predict.py --i data/test_images/Unit_test2/Grape_spot.JPG  -m first_saved_model.keras
+python3 predict.py -i data/test_images/Unit_test2/Grape_Black_rot1.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test2/Grape_Black_rot2.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test2/Grape_Esca.JPG  -m models/vic_E3-B8-A1300T.keras   
+python3 predict.py -i data/test_images/Unit_test2/Grape_healthy.JPG  -m models/vic_E3-B8-A1300T.keras
+python3 predict.py -i data/test_images/Unit_test2/Grape_spot.JPG  -m models/vic_E3-B8-A1300T.keras
 ```
