@@ -72,7 +72,7 @@ def bright_image(image):
 
 def blur_image(image):
     # Apply Gaussian blur to the image
-    return cv2.GaussianBlur(image, (5, 5), 0)
+    return cv2.GaussianBlur(image, (3, 3), 0)
 
 
 def display_augmented_images(

@@ -1,0 +1,10 @@
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-1 -a 1250 -e 2 -b 8
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-2 -a 1250 -e 2 -b 8
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-3 -a 1250 -e 2 -b 8
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-4 -a 1250 -e 2 -b 8
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-5 -a 1250 -e 2 -b 8
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-6 -a 1250 -e 2 -b 4
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-7 -a 1250 -e 2 -b 4
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-8 -a 1250 -e 2 -b 4
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-9 -a 1250 -e 2 -b 4
+python3 train.py -d data/leaves/images -n MehdiV9-augmentation-v2-10 -a 1250 -e 2 -b 4
