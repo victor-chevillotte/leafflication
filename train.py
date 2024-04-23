@@ -51,14 +51,24 @@ def get_args():
         type=int,
         help="Patience for early stopping",
     )
+    parser.add_argument(
+        "--train-dataset",
+        dest="train_dataset",
+        type=str,
+        help="Train dataset path",
+    )
+    parser.add_argument(
+        "--validation-dataset",
+        dest="validation_dataset",
+        type=str,
+        help="Validation dataset path",
+    )
     return parser.parse_args()
 
 
 def data_augmentation(
-        model_parameters,
-        dir_for_training,
-        dir_for_validation,
-        img_per_class):
+    model_parameters, dir_for_training, dir_for_validation, img_per_class
+):
     if model_parameters.augment_data_flag:
         if os.path.exists(dir_for_training):
             print(f"The folder {dir_for_training} already exists")
@@ -181,20 +191,27 @@ def main():
         dir_for_training = "trainingData"
         dir_for_validation = "validationData"
 
-        img_per_class = Utils.split_data(
-            model_parameters.dir_path,
-            dir_for_training,
-            dir_for_validation,
-            model_parameters.validation_data,
-            model_parameters.img_per_class,
-            model_parameters.augment_options
-        )
-   
+        if (
+            model_parameters.train_dataset
+            and model_parameters.validation_dataset
+        ):
+            dir_for_training = model_parameters.train_dataset
+            dir_for_validation = model_parameters.validation_dataset
+        else:
+            model_parameters.img_per_class = Utils.split_data(
+                model_parameters.dir_path,
+                dir_for_training,
+                dir_for_validation,
+                model_parameters.validation_data,
+                model_parameters.img_per_class,
+                model_parameters.augment_options,
+            )
+
         data_augmentation(
             model_parameters,
             dir_for_training,
             dir_for_validation,
-            img_per_class
+            model_parameters.img_per_class,
         )
 
         # Training

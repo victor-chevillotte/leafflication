@@ -82,17 +82,20 @@ class ModelParameters:
     transform_option: str = None
     img_size: tuple = (256, 256)
     patience: int = 10
+    train_dataset: str = None
+    validation_dataset: str = None
 
 
 class Utils:
 
     @staticmethod
     def parse_args(args):
+        dir_path = None
         if args.d:
             dir_path = args.d
             if not os.path.exists(dir_path):
                 raise Exception("Directory doesn't exist")
-        else:
+        elif not args.train_dataset and not args.validation_dataset:
             raise Exception("Directory path is required")
         if args.n:
             model_name = args.n
@@ -156,6 +159,18 @@ class Utils:
             os.makedirs("models")
         if not os.path.exists("models_config_saved"):
             os.makedirs("models_config_saved")
+        if args.train_dataset:
+            train_dataset = args.train_dataset
+            if not args.validation_dataset:
+                raise Exception("Validation dataset is required")
+        else:
+            train_dataset = None
+        if args.validation_dataset:
+            validation_dataset = args.validation_dataset
+            if not args.train_dataset:
+                raise Exception("Train dataset is required")
+        else:
+            validation_dataset = None
         return ModelParameters(
             dir_path,
             model_name,
@@ -166,6 +181,8 @@ class Utils:
             img_per_class,
             transform_data,
             augment_data,
+            train_dataset=train_dataset,
+            validation_dataset=validation_dataset,
         )
 
     @staticmethod
@@ -285,7 +302,7 @@ class Utils:
         validation_dir_path,
         validation_data,
         img_per_class,
-        augmentation_options
+        augmentation_options,
     ):
         try:
             print("Splitting data")
@@ -325,8 +342,7 @@ class Utils:
                 if os.path.isdir(class_dir_path):
                     train_class_dir = os.path.join(train_dir_path, class_name)
                     validation_class_dir = os.path.join(
-                        validation_dir_path,
-                        class_name
+                        validation_dir_path, class_name
                     )
                     if os.path.exists(train_class_dir):
                         shutil.rmtree(train_class_dir)
@@ -336,7 +352,7 @@ class Utils:
                     os.makedirs(validation_class_dir)
                     images = []
                     for img in os.listdir(class_dir_path):
-                        if img.lower().endswith(('.jpg')):
+                        if img.lower().endswith((".jpg")):
                             images.append(img)
                     random.shuffle(images)
                     validation_data_size = int(min(counts) * validation_data)
@@ -345,12 +361,12 @@ class Utils:
                         if i < validation_data_size:
                             shutil.copy(
                                 os.path.join(class_dir_path, img),
-                                os.path.join(validation_class_dir, img)
+                                os.path.join(validation_class_dir, img),
                             )
                         else:
                             shutil.copy(
                                 os.path.join(class_dir_path, img),
-                                os.path.join(train_class_dir, img)
+                                os.path.join(train_class_dir, img),
                             )
             print("Data has been split")
             print("Train data:")
@@ -365,10 +381,9 @@ class Utils:
             print("Validation data:")
             for class_name in os.listdir(validation_dir_path):
                 class_count = 0
-                for img in os.listdir(os.path.join(
-                    validation_dir_path,
-                    class_name
-                )):
+                for img in os.listdir(
+                    os.path.join(validation_dir_path, class_name)
+                ):
                     class_count += 1
                 print(f"Class: {class_name} - {class_count} images")
             print()
