@@ -189,10 +189,10 @@ def main():
         args = get_args()
         model_parameters = Utils.parse_args(args)
         model_parameters.augment_options = [
-            "bright",
-            "cropped",
             "flipped",
+            "bright",
             "rotated",
+            "cropped",
         ]
         model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)

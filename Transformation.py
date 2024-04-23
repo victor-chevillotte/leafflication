@@ -224,18 +224,38 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     # image.grey_scale = pcv.rgb2gray_hsv(rgb_img=image.img, channel="h")
     image.grey_scale = pcv.rgb2gray_lab(rgb_img=image.img, channel="a")
     image.blur = pcv.gaussian_blur(
-        img=image.grey_scale, ksize=(5, 5), sigma_x=0
+        img=image.grey_scale, ksize=(75, 75), sigma_x=0
     )
     # image.binary_mask = pcv.threshold.otsu(
     #     gray_img=image.blur, object_type="light"
     # )
-    image.binary_mask = pcv.threshold.otsu(
-        gray_img=image.blur, object_type="dark"
-    )
+    # image.binary_mask = pcv.threshold.otsu(
+    #     gray_img=image.blur, object_type="dark"
+    # )
+    img = image.img
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # find the green color
+    mask_green = cv2.inRange(hsv, (36, 0, 0), (86, 255, 255))
+    # find the brown color
+    mask_brown = cv2.inRange(hsv, (8, 60, 20), (30, 255, 200))
+    # find the yellow color in the leaf
+    mask_yellow = cv2.inRange(hsv, (21, 39, 64), (40, 255, 255))
+
+    # find any of the three colors(green or brown or yellow) in the image
+    mask = cv2.bitwise_or(mask_green, mask_brown)
+    mask = cv2.bitwise_or(mask, mask_yellow)
+
+    image.binary_mask = mask
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
-    image.blur = image.binary_mask
+    blur = pcv.gaussian_blur(
+        img=image.binary_mask, ksize=(5, 5), sigma_x=0
+    )
+    # Bitwise-AND mask and original image
+    # image.mask = cv2.bitwise_and(img, img, mask=image.binary_mask)
+    image.blur = blur
     image.mask = pcv.apply_mask(
-        img=image.img, mask=image.binary_mask, mask_color="white"
+        img=image.img, mask=blur, mask_color="white"
     )
     roi_mask = define_roi(image)
 
