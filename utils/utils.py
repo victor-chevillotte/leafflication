@@ -96,6 +96,11 @@ class Utils:
             dir_path = args.d
             if not os.path.exists(dir_path):
                 raise Exception("Directory doesn't exist")
+            if args.validation_dataset or args.train_dataset:
+                raise Exception(
+                    "You can't use the -d and specified datasets options"
+                    " at the same time"
+                )
         elif not args.train_dataset and not args.validation_dataset:
             raise Exception("Directory path is required")
         if args.n:
@@ -390,26 +395,23 @@ class Utils:
             print()
             dir_for_saved_images = "learnings"
             dir_for_saved_images_train = os.path.join(
-                dir_for_saved_images,
-                "train"
+                dir_for_saved_images, "train"
             )
             dir_for_saved_images_validation = os.path.join(
-                dir_for_saved_images,
-                "validation"
+                dir_for_saved_images, "validation"
             )
             if os.path.exists(dir_for_saved_images):
                 shutil.rmtree(dir_for_saved_images)
             os.makedirs(dir_for_saved_images)
             shutil.copytree(train_dir_path, dir_for_saved_images_train)
             shutil.copytree(
-                validation_dir_path,
-                dir_for_saved_images_validation
+                validation_dir_path, dir_for_saved_images_validation
             )
-            archive_name = 'learnings'
-            if os.path.exists(archive_name + '.zip'):
-                os.remove(archive_name + '.zip')
-            shutil.make_archive(archive_name, 'zip', dir_for_saved_images)
-            if os.path.exists(archive_name + '.zip'):
+            archive_name = "learnings"
+            if os.path.exists(archive_name + ".zip"):
+                os.remove(archive_name + ".zip")
+            shutil.make_archive(archive_name, "zip", dir_for_saved_images)
+            if os.path.exists(archive_name + ".zip"):
                 print(f"Archive {archive_name}.zip created")
                 shutil.rmtree(dir_for_saved_images)
             else:
@@ -428,23 +430,27 @@ class Utils:
             if os.path.exists(save_dir_path):
                 shutil.rmtree(save_dir_path)
             os.makedirs(save_dir_path)
-            pattern = re.compile(rf"{data_dir_path}/(?P<class>[^/]+)/image \((?P<number>\d+)\)(?:_mask)?\.JPG")
-            # pattern = re.compile(rf"{data_dir_path}/(?P<class>[^/]+)/image \((?P<number>\d+)\)(?:_mask)?\.JPG")
+            pattern = re.compile(
+                rf"{data_dir_path}"
+                rf"/(?P<class>[^/]+)/image \((?P<number>\d+)\)(?:_mask)?\.JPG"
+            )
             for file_path in files_path:
                 match = pattern.match(file_path)
                 if match:
                     count += 1
-                    image_class = match.group('class')
-                    image_number = match.group('number')
+                    image_class = match.group("class")
+                    image_number = match.group("number")
                     original_file_path = os.path.join(
                         origin_dir_path,
                         image_class,
-                        f"image ({image_number}).JPG"
+                        f"image ({image_number}).JPG",
                     )
                     class_dir_path = os.path.join(save_dir_path, image_class)
                     if not os.path.exists(class_dir_path):
                         os.makedirs(class_dir_path)
-                    save_file_path = os.path.join(class_dir_path, f"image ({image_number}).JPG")
+                    save_file_path = os.path.join(
+                        class_dir_path, f"image ({image_number}).JPG"
+                    )
                     shutil.copy(original_file_path, save_file_path)
             print(f"Saved {count} images")
         except Exception as e:
