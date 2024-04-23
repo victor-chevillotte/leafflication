@@ -131,9 +131,9 @@ class Utils:
             seed = np.random.randint(0, 1000)
         if args.v:
             validation_data_percents = args.v
-            if validation_data_percents < 10:
+            if validation_data_percents < 5:
                 raise Exception(
-                    "Percents of validation data must be " "greater than 10"
+                    "Percents of validation data must be " "greater than 5"
                 )
             elif validation_data_percents > 50:
                 raise Exception(
