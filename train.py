@@ -70,16 +70,16 @@ def data_augmentation(
     model_parameters, dir_for_training, dir_for_validation, img_per_class
 ):
     if model_parameters.augment_data_flag:
-        if os.path.exists(dir_for_training):
-            print(f"The folder {dir_for_training} already exists")
-            shutil.rmtree(dir_for_training)
-            print(f"The folder {dir_for_training} has been deleted")
-        shutil.copytree(model_parameters.dir_path, dir_for_training)
-        print(
-            f"The folder {model_parameters.dir_path} has been copied "
-            f"to {dir_for_training}"
-        )
-        print()
+        # if os.path.exists(dir_for_training):
+        #     print(f"The folder {dir_for_training} already exists")
+        #     shutil.rmtree(dir_for_training)
+        #     print(f"The folder {dir_for_training} has been deleted")
+        # shutil.copytree(model_parameters.dir_path, dir_for_training)
+        # print(
+        #     f"The folder {model_parameters.dir_path} has been copied "
+        #     f"to {dir_for_training}"
+        # )
+        # print()
         print("----- Augmenting data -----")
         img_per_class = AugmentData.augment_data(
             dir_for_training,
@@ -114,22 +114,32 @@ def get_data(
     img_height=256,
     img_width=256,
 ):
-    print(f"Validation data : {validation_data}")
     train_data = tf.keras.utils.image_dataset_from_directory(
         training_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
+    # Utils.save_images(
+    #     "data/images",
+    #     train_data.file_paths,
+    #     "trainSaved",
+    #     training_dir_path
+    # )
     validation_data = tf.keras.utils.image_dataset_from_directory(
         validation_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
+    # Utils.save_images(
+    #     "data/images",
+    #     validation_data.file_paths,
+    #     "validation_saved",
+    #     validation_dir_path
+    # )
     class_names = train_data.class_names
     print("Class names : ", class_names)
-
     AUTOTUNE = tf.data.AUTOTUNE
     train_data = (
         train_data.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)

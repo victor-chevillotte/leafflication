@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import shutil
 import random
+import re
 from dataclasses import dataclass
 from matplotlib.backends.backend_agg import FigureCanvasBase
 from typing import List
@@ -387,8 +388,65 @@ class Utils:
                     class_count += 1
                 print(f"Class: {class_name} - {class_count} images")
             print()
+            dir_for_saved_images = "learnings"
+            dir_for_saved_images_train = os.path.join(
+                dir_for_saved_images,
+                "train"
+            )
+            dir_for_saved_images_validation = os.path.join(
+                dir_for_saved_images,
+                "validation"
+            )
+            if os.path.exists(dir_for_saved_images):
+                shutil.rmtree(dir_for_saved_images)
+            os.makedirs(dir_for_saved_images)
+            shutil.copytree(train_dir_path, dir_for_saved_images_train)
+            shutil.copytree(
+                validation_dir_path,
+                dir_for_saved_images_validation
+            )
+            archive_name = 'learnings'
+            if os.path.exists(archive_name + '.zip'):
+                os.remove(archive_name + '.zip')
+            shutil.make_archive(archive_name, 'zip', dir_for_saved_images)
+            if os.path.exists(archive_name + '.zip'):
+                print(f"Archive {archive_name}.zip created")
+                shutil.rmtree(dir_for_saved_images)
+            else:
+                print(f"Error creating archive {archive_name}.zip")
+            print()
             print()
             return img_per_class
         except Exception as e:
             print(f"Error split_data: {e}")
+            exit(1)
+
+    @staticmethod
+    def save_images(origin_dir_path, files_path, save_dir_path, data_dir_path):
+        try:
+            count = 0
+            if os.path.exists(save_dir_path):
+                shutil.rmtree(save_dir_path)
+            os.makedirs(save_dir_path)
+            pattern = re.compile(rf"{data_dir_path}/(?P<class>[^/]+)/image \((?P<number>\d+)\)(?:_mask)?\.JPG")
+            # pattern = re.compile(rf"{data_dir_path}/(?P<class>[^/]+)/image \((?P<number>\d+)\)(?:_mask)?\.JPG")
+            for file_path in files_path:
+                match = pattern.match(file_path)
+                if match:
+                    count += 1
+                    image_class = match.group('class')
+                    image_number = match.group('number')
+                    original_file_path = os.path.join(
+                        origin_dir_path,
+                        image_class,
+                        f"image ({image_number}).JPG"
+                    )
+                    class_dir_path = os.path.join(save_dir_path, image_class)
+                    if not os.path.exists(class_dir_path):
+                        os.makedirs(class_dir_path)
+                    save_file_path = os.path.join(class_dir_path, f"image ({image_number}).JPG")
+                    shutil.copy(original_file_path, save_file_path)
+            print(f"Saved {count} images")
+        except Exception as e:
+            print(f"Error save_images: {e}")
             exit(1)
