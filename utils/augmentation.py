@@ -37,7 +37,7 @@ class AugmentData:
                 f"images minimum per class"
             )
             img_per_class = min(counts) * (len(augmentation_options) + 1)
-
+        img_per_class = int(img_per_class)
         for category in images_class:
             # Augment the class if it has less than the minimum number of
             # images per class

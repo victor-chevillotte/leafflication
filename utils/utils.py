@@ -317,7 +317,6 @@ class Utils:
             if len(counts) <= 0:
                 raise Exception("No images found")
 
-            # Calculate the minimum number of images per class
             min_per_class = min(counts) - (min(counts) * validation_data)
             print(f"min_per_class: {min_per_class}")
             if img_per_class is None:
@@ -418,7 +417,7 @@ class Utils:
                 print(f"Error creating archive {archive_name}.zip")
             print()
             print()
-            return img_per_class
+            return int(img_per_class)
         except Exception as e:
             print(f"Error split_data: {e}")
             exit(1)
