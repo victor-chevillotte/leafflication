@@ -224,7 +224,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     # image.grey_scale = pcv.rgb2gray_hsv(rgb_img=image.img, channel="h")
     image.grey_scale = pcv.rgb2gray_lab(rgb_img=image.img, channel="a")
     image.blur = pcv.gaussian_blur(
-        img=image.grey_scale, ksize=(5, 5), sigma_x=0
+        img=image.grey_scale, ksize=(51, 51), sigma_x=0
     )
     # image.binary_mask = pcv.threshold.otsu(
     #     gray_img=image.blur, object_type="light"

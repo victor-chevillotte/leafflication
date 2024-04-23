@@ -1,6 +1,7 @@
 import argparse
 import tensorflow as tf
 import os
+from PIL import Image
 import shutil
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -90,14 +91,14 @@ def get_data(
     dir_path,
     batch_size,
     seed,
-    validation_data,
+    validation_split,
     img_height=256,
     img_width=256,
 ):
-    print(f"Validation data : {validation_data}")
+    print(f"Validation split rate : {validation_split}")
     train_data = tf.keras.utils.image_dataset_from_directory(
         dir_path,
-        validation_split=validation_data,
+        validation_split=validation_split,
         subset="training",
         seed=seed,
         image_size=(img_height, img_width),
@@ -105,12 +106,27 @@ def get_data(
     )
     validation_data = tf.keras.utils.image_dataset_from_directory(
         dir_path,
-        validation_split=validation_data,
+        validation_split=validation_split,
         subset="validation",
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
+
+    def save_images(dataset, folder_name):
+        os.makedirs(folder_name, exist_ok=True)
+        i = 0
+        for images, _ in dataset.unbatch().batch(1):
+            for image in images:
+                #image = (image.numpy() * 255).astype('uint8')
+                img = Image.fromarray(image)
+                img.save(os.path.join("data/" + folder_name, f'image_{i}.png'))
+                i += 1
+
+    # Sauvegarder les images des datasets
+    save_images(train_data, 'train')
+    save_images(validation_data, 'validation')
+
     class_names = train_data.class_names
     print("Class names : ", class_names)
 
@@ -182,7 +198,7 @@ def main():
                 dir_for_training,
                 model_parameters.batch_size,
                 model_parameters.seed,
-                model_parameters.validation_data,
+                model_parameters.validation_split,
                 model_parameters.img_size[0],
                 model_parameters.img_size[1],
             )

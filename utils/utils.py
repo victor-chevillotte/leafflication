@@ -72,7 +72,7 @@ class ModelParameters:
     epochs: int
     batch_size: int
     seed: int
-    validation_data: int
+    validation_split: int
     img_per_class: int
     transform_data_flag: bool
     augment_data_flag: bool
@@ -119,17 +119,17 @@ class Utils:
         else:
             seed = np.random.randint(0, 1000)
         if args.v:
-            validation_data_percents = args.v
-            if validation_data_percents < 10:
+            validation_split_percents = args.v
+            if validation_split_percents < 10:
                 raise Exception(
                     "Percents of validation data must be " "greater than 10"
                 )
-            elif validation_data_percents > 50:
+            elif validation_split_percents > 50:
                 raise Exception(
                     "Percents of validation data must be " "less than 50"
                 )
         else:
-            validation_data_percents = 20
+            validation_split_percents = 20
         if args.a:
             img_per_class = args.a
             if img_per_class < 1:
@@ -160,7 +160,7 @@ class Utils:
             epochs,
             batch_size,
             seed,
-            validation_data_percents / 100,
+            validation_split_percents / 100,
             img_per_class,
             transform_data,
             augment_data,
@@ -233,7 +233,7 @@ class Utils:
                 "epochs": params.epochs,
                 "batch_size": params.batch_size,
                 "seed": params.seed,
-                "validation_data_percents": params.validation_data,
+                "validation_split": params.validation_split,
                 "img_per_class": params.img_per_class,
                 "transform_data_flag": params.transform_data_flag,
                 "augment_data_flag": params.augment_data_flag,
