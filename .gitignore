@@ -227,3 +227,5 @@ temp/*
 models
 data_copy
 data_validation
+trainSaved
+validationSaved
