@@ -3,6 +3,8 @@ import cv2
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import shutil
+import random
 from dataclasses import dataclass
 from matplotlib.backends.backend_agg import FigureCanvasBase
 from typing import List
@@ -79,7 +81,7 @@ class ModelParameters:
     augment_options: list = None
     transform_option: str = None
     img_size: tuple = (256, 256)
-    patience: int = 2
+    patience: int = 10
 
 
 class Utils:
@@ -275,3 +277,103 @@ class Utils:
 
         except Exception as e:
             print(f"Error save_model: {e}")
+
+    @staticmethod
+    def split_data(
+        dir_path,
+        train_dir_path,
+        validation_dir_path,
+        validation_data,
+        img_per_class,
+        augmentation_options
+    ):
+        try:
+            print("Splitting data")
+            images_class = get_images_count(dir_path)
+            counts = [category.count for category in images_class]
+            if len(counts) <= 0:
+                raise Exception("No images found")
+
+            # Calculate the minimum number of images per class
+            min_per_class = min(counts) - (min(counts) * validation_data)
+            print(f"min_per_class: {min_per_class}")
+            if img_per_class is None:
+                img_per_class = max(counts)
+            if img_per_class > min_per_class * (len(augmentation_options) + 1):
+                print(f"Each class will have {img_per_class} images minimum")
+                print(
+                    f"But minimum images per class is {min(counts)} images "
+                    f"and we have {len(augmentation_options)} "
+                    f"augmentation options"
+                )
+                print(
+                    f"So we will have "
+                    f"{min(counts) * (len(augmentation_options) + 1)} "
+                    f"images minimum per class"
+                )
+                img_per_class = min_per_class * (len(augmentation_options) + 1)
+
+            if os.path.exists(train_dir_path):
+                shutil.rmtree(train_dir_path)
+            os.makedirs(train_dir_path)
+            if os.path.exists(validation_dir_path):
+                shutil.rmtree(validation_dir_path)
+            os.makedirs(validation_dir_path)
+
+            for class_name in os.listdir(dir_path):
+                class_dir_path = os.path.join(dir_path, class_name)
+                if os.path.isdir(class_dir_path):
+                    train_class_dir = os.path.join(train_dir_path, class_name)
+                    validation_class_dir = os.path.join(
+                        validation_dir_path,
+                        class_name
+                    )
+                    if os.path.exists(train_class_dir):
+                        shutil.rmtree(train_class_dir)
+                    os.makedirs(train_class_dir)
+                    if os.path.exists(validation_class_dir):
+                        shutil.rmtree(validation_class_dir)
+                    os.makedirs(validation_class_dir)
+                    images = []
+                    for img in os.listdir(class_dir_path):
+                        if img.lower().endswith(('.jpg')):
+                            images.append(img)
+                    random.shuffle(images)
+                    validation_data_size = int(min(counts) * validation_data)
+
+                    for i, img in enumerate(images):
+                        if i < validation_data_size:
+                            shutil.copy(
+                                os.path.join(class_dir_path, img),
+                                os.path.join(validation_class_dir, img)
+                            )
+                        else:
+                            shutil.copy(
+                                os.path.join(class_dir_path, img),
+                                os.path.join(train_class_dir, img)
+                            )
+            print("Data has been split")
+            print("Train data:")
+            for class_name in os.listdir(train_dir_path):
+                class_count = 0
+                for img in os.listdir(
+                    os.path.join(train_dir_path, class_name)
+                ):
+                    class_count += 1
+                print(f"Class: {class_name} - {class_count} images")
+            print()
+            print("Validation data:")
+            for class_name in os.listdir(validation_dir_path):
+                class_count = 0
+                for img in os.listdir(os.path.join(
+                    validation_dir_path,
+                    class_name
+                )):
+                    class_count += 1
+                print(f"Class: {class_name} - {class_count} images")
+            print()
+            print()
+            return img_per_class
+        except Exception as e:
+            print(f"Error split_data: {e}")
+            exit(1)

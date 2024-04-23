@@ -54,7 +54,11 @@ def get_args():
     return parser.parse_args()
 
 
-def data_augmentation(model_parameters, dir_for_training):
+def data_augmentation(
+        model_parameters,
+        dir_for_training,
+        dir_for_validation,
+        img_per_class):
     if model_parameters.augment_data_flag:
         if os.path.exists(dir_for_training):
             print(f"The folder {dir_for_training} already exists")
@@ -67,10 +71,10 @@ def data_augmentation(model_parameters, dir_for_training):
         )
         print()
         print("----- Augmenting data -----")
-        model_parameters.img_per_class = AugmentData.augment_data(
+        img_per_class = AugmentData.augment_data(
             dir_for_training,
             model_parameters.augment_options,
-            model_parameters.img_per_class,
+            img_per_class,
         )
 
         # Data transformation
@@ -78,16 +82,22 @@ def data_augmentation(model_parameters, dir_for_training):
             model_parameters.transform_data_flag
             and len(model_parameters.augment_options) > 0
         ):
-            print("----- Transforming data -----")
+            print("----- Transforming training data -----")
             TransformData.transform_data(
                 dir_for_training, model_parameters.transform_option
+            )
+            print()
+            print("----- Transforming validation data -----")
+            TransformData.transform_data(
+                dir_for_validation, model_parameters.transform_option
             )
 
     Utils.display_histogram_terminal(dir_for_training)
 
 
 def get_data(
-    dir_path,
+    training_dir_path,
+    validation_dir_path,
     batch_size,
     seed,
     validation_data,
@@ -96,17 +106,13 @@ def get_data(
 ):
     print(f"Validation data : {validation_data}")
     train_data = tf.keras.utils.image_dataset_from_directory(
-        dir_path,
-        validation_split=validation_data,
-        subset="training",
+        training_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
     validation_data = tf.keras.utils.image_dataset_from_directory(
-        dir_path,
-        validation_split=validation_data,
-        subset="validation",
+        validation_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
@@ -173,13 +179,29 @@ def main():
         model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)
         dir_for_training = "trainingData"
+        dir_for_validation = "validationData"
 
-        data_augmentation(model_parameters, dir_for_training)
+        img_per_class = Utils.split_data(
+            model_parameters.dir_path,
+            dir_for_training,
+            dir_for_validation,
+            model_parameters.validation_data,
+            model_parameters.img_per_class,
+            model_parameters.augment_options
+        )
+   
+        data_augmentation(
+            model_parameters,
+            dir_for_training,
+            dir_for_validation,
+            img_per_class
+        )
 
         # Training
         (normalized_train_data, normalized_validation_data, class_names) = (
             get_data(
                 dir_for_training,
+                dir_for_validation,
                 model_parameters.batch_size,
                 model_parameters.seed,
                 model_parameters.validation_data,

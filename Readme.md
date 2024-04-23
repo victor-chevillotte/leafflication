@@ -50,7 +50,7 @@ python3 Transformation.py -src data/images/leaves -dst data/images/processed -ma
 
 - Train the model
 ```bash
-python3 Train.py -d data/leaves/images -n <model_name> --e <epoch_number> --b <batch_size>
+python3 Train.py -d data/leaves/images -n <model_name> -e <epoch_number> -b <batch_size> -s <seed> -v <percents_of_validation_data> -a <augment_data_images_per_class>
 ```
 
 - Predict the class of an image

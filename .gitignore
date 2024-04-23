@@ -221,6 +221,7 @@ data/*
 .tool-versions
 *.h5
 trainingData
+validationData
 temp/*
 !temp/.gitkeep
 models
