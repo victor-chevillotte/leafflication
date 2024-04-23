@@ -1,7 +1,10 @@
 import argparse
 import os
 import matplotlib.pyplot as plt
-from utils.utils import get_images_count
+from utils.utils import get_images_count, pyqt_setup
+
+
+pyqt_setup()
 
 
 def create_bar_chart(values, names, title, xlabel, ylabel, colors, axis):

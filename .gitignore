@@ -226,3 +226,4 @@ temp/*
 !temp/.gitkeep
 models
 data_copy
+data_validation
