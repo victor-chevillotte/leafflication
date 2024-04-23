@@ -1,7 +1,5 @@
 import argparse
 import tensorflow as tf
-import os
-import shutil
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from utils.augmentation import AugmentData
