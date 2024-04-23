@@ -122,12 +122,15 @@ def get_data(
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
-    Utils.save_images(
-        "data/leaves/images",
-        train_data.file_paths,
-        "trainSaved",
-        training_dir_path,
-    )
+    with open("t.txt", 'w') as file:
+        for i in train_data.file_paths:
+            file.write(i + '\n')
+    # Utils.save_images(
+    #     "data/images",
+    #     train_data.file_paths,
+    #     "trainSaved",
+    #     training_dir_path,
+    # )
     validation_data = tf.keras.utils.image_dataset_from_directory(
         validation_dir_path,
         validation_split=validation_data,
@@ -136,12 +139,15 @@ def get_data(
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
-    Utils.save_images(
-        "data/leaves/images",
-        validation_data.file_paths,
-        "validation_saved",
-        validation_dir_path,
-    )
+    # Utils.save_images(
+    #     "data/images",
+    #     validation_data.file_paths,
+    #     "validation_saved",
+    #     validation_dir_path,
+    # )
+    with open("v.txt", 'w') as file:
+        for i in validation_data.file_paths:
+            file.write(i + '\n')
     exit(0)
     class_names = train_data.class_names
     print("Class names : ", class_names)
