@@ -66,21 +66,28 @@ class AugmentData:
     def augment_class(dir_path, count, img_per_class, augmentation_options):
         j = 0
         additional_images = img_per_class - count
-        if additional_images > 0:
-            for i in range(len(augmentation_options)):
-                for y in range(count):
-                    image_path = f"{dir_path}/image ({y + 1}).JPG"
-                    if os.path.exists(image_path):
-                        try:
-                            image = read_image_file(image_path)
-                            AugmentData.augmentation(
-                                image, image_path, augmentation_options[i]
-                            )
-                            j += 1
-                            if j >= additional_images:
-                                return j
-                        except Exception:
-                            None
+        highest, jpg_count = AugmentData.get_count_and_highest_number(
+            dir_path
+        )
+        try:
+            if additional_images > 0:
+                for i in range(len(augmentation_options)):
+                    for y in range(highest):
+                        image_path = f"{dir_path}/image ({y + 1}).JPG"
+                        if os.path.exists(image_path):
+                            try:
+                                image = read_image_file(image_path)
+                                AugmentData.augmentation(
+                                    image, image_path, augmentation_options[i]
+                                )
+                                j += 1
+                                if j >= additional_images:
+                                    return j
+                            except Exception:
+                                None
+            return j
+        except Exception:
+            None
 
     @staticmethod
     def augmentation(image, file_path, augmentation_options):

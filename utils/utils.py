@@ -320,13 +320,13 @@ class Utils:
             if img_per_class > min_per_class * (len(augmentation_options) + 1):
                 print(f"Each class will have {img_per_class} images minimum")
                 print(
-                    f"But minimum images per class is {min(counts)} images "
+                    f"But minimum images per class is {min_per_class} images "
                     f"and we have {len(augmentation_options)} "
                     f"augmentation options"
                 )
                 print(
                     f"So we will have "
-                    f"{min(counts) * (len(augmentation_options) + 1)} "
+                    f"{min_per_class * (len(augmentation_options) + 1)} "
                     f"images minimum per class"
                 )
                 img_per_class = min_per_class * (len(augmentation_options) + 1)
