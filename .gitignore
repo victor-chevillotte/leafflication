@@ -225,3 +225,4 @@ trainingData
 temp/*
 !temp/.gitkeep
 models
+data_copy
