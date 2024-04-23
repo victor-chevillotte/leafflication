@@ -51,26 +51,40 @@ def get_args():
         type=int,
         help="Patience for early stopping",
     )
+    parser.add_argument(
+        "--train-dataset",
+        dest="train_dataset",
+        type=str,
+        help="Train dataset path",
+    )
+    parser.add_argument(
+        "--validation-dataset",
+        dest="validation_dataset",
+        type=str,
+        help="Validation dataset path",
+    )
     return parser.parse_args()
 
 
-def data_augmentation(model_parameters, dir_for_training):
+def data_augmentation(
+    model_parameters, dir_for_training, dir_for_validation, img_per_class
+):
     if model_parameters.augment_data_flag:
-        if os.path.exists(dir_for_training):
-            print(f"The folder {dir_for_training} already exists")
-            shutil.rmtree(dir_for_training)
-            print(f"The folder {dir_for_training} has been deleted")
-        shutil.copytree(model_parameters.dir_path, dir_for_training)
-        print(
-            f"The folder {model_parameters.dir_path} has been copied "
-            f"to {dir_for_training}"
-        )
-        print()
+        # if os.path.exists(dir_for_training):
+        #     print(f"The folder {dir_for_training} already exists")
+        #     shutil.rmtree(dir_for_training)
+        #     print(f"The folder {dir_for_training} has been deleted")
+        # shutil.copytree(model_parameters.dir_path, dir_for_training)
+        # print(
+        #     f"The folder {model_parameters.dir_path} has been copied "
+        #     f"to {dir_for_training}"
+        # )
+        # print()
         print("----- Augmenting data -----")
-        model_parameters.img_per_class = AugmentData.augment_data(
+        img_per_class = AugmentData.augment_data(
             dir_for_training,
             model_parameters.augment_options,
-            model_parameters.img_per_class,
+            img_per_class,
         )
 
         # Data transformation
@@ -78,42 +92,54 @@ def data_augmentation(model_parameters, dir_for_training):
             model_parameters.transform_data_flag
             and len(model_parameters.augment_options) > 0
         ):
-            print("----- Transforming data -----")
+            print("----- Transforming training data -----")
             TransformData.transform_data(
                 dir_for_training, model_parameters.transform_option
+            )
+            print()
+            print("----- Transforming validation data -----")
+            TransformData.transform_data(
+                dir_for_validation, model_parameters.transform_option
             )
 
     Utils.display_histogram_terminal(dir_for_training)
 
 
 def get_data(
-    dir_path,
+    training_dir_path,
+    validation_dir_path,
     batch_size,
     seed,
     validation_data,
     img_height=256,
     img_width=256,
 ):
-    print(f"Validation data : {validation_data}")
     train_data = tf.keras.utils.image_dataset_from_directory(
-        dir_path,
-        validation_split=validation_data,
-        subset="training",
+        training_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
+    # Utils.save_images(
+    #     "data/images",
+    #     train_data.file_paths,
+    #     "trainSaved",
+    #     training_dir_path
+    # )
     validation_data = tf.keras.utils.image_dataset_from_directory(
-        dir_path,
-        validation_split=validation_data,
-        subset="validation",
+        validation_dir_path,
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
     )
+    # Utils.save_images(
+    #     "data/images",
+    #     validation_data.file_paths,
+    #     "validation_saved",
+    #     validation_dir_path
+    # )
     class_names = train_data.class_names
     print("Class names : ", class_names)
-
     AUTOTUNE = tf.data.AUTOTUNE
     train_data = (
         train_data.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
@@ -173,13 +199,36 @@ def main():
         model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)
         dir_for_training = "trainingData"
+        dir_for_validation = "validationData"
 
-        data_augmentation(model_parameters, dir_for_training)
+        if (
+            model_parameters.train_dataset
+            and model_parameters.validation_dataset
+        ):
+            dir_for_training = model_parameters.train_dataset
+            dir_for_validation = model_parameters.validation_dataset
+        else:
+            model_parameters.img_per_class = Utils.split_data(
+                model_parameters.dir_path,
+                dir_for_training,
+                dir_for_validation,
+                model_parameters.validation_data,
+                model_parameters.img_per_class,
+                model_parameters.augment_options,
+            )
+
+        data_augmentation(
+            model_parameters,
+            dir_for_training,
+            dir_for_validation,
+            model_parameters.img_per_class,
+        )
 
         # Training
         (normalized_train_data, normalized_validation_data, class_names) = (
             get_data(
                 dir_for_training,
+                dir_for_validation,
                 model_parameters.batch_size,
                 model_parameters.seed,
                 model_parameters.validation_data,
