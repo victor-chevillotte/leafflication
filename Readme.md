@@ -161,3 +161,17 @@ python3 predict.py -i data/test_images/Unit_test2/Grape_Esca.JPG  -m models/vic_
 python3 predict.py -i data/test_images/Unit_test2/Grape_healthy.JPG  -m models/vic_E3-B8-A1300T.keras
 python3 predict.py -i data/test_images/Unit_test2/Grape_spot.JPG  -m models/vic_E3-B8-A1300T.keras
 ```
+
+### Tests
+
+#### Train
+
+```bash
+python3 train.py --train-dataset trainSaved --validation-dataset validationSaved -n MehdiV12 -a 1300 -e 3 -b 8
+```
+
+#### Predict
+```bash
+python3 testImagesPredictions.py -d data/test_images/Unit_test1 -m models/MehdiV12_E3-B8-A1300T.keras
+python3 testImagesPredictions.py -d data/test_images/Unit_test2 -m models/MehdiV12_E3-B8-A1300T.keras
+```
