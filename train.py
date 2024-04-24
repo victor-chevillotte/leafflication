@@ -52,6 +52,18 @@ def get_args():
         type=int,
         help="Patience for early stopping",
     )
+    parser.add_argument(
+        "--train-dataset",
+        dest="train_dataset",
+        type=str,
+        help="Train dataset path",
+    )
+    parser.add_argument(
+        "--validation-dataset",
+        dest="validation_dataset",
+        type=str,
+        help="Validation dataset path",
+    )
     return parser.parse_args()
 
 
@@ -87,7 +99,7 @@ def data_augmentation(model_parameters, dir_for_training):
     Utils.display_histogram_terminal(dir_for_training)
 
 
-def save_images(dir_path, file_paths, save_dir, class_names):
+def save_images(file_paths, save_dir, class_names):
     if os.path.exists(save_dir):
         shutil.rmtree(save_dir)
     os.makedirs(save_dir)
@@ -99,9 +111,7 @@ def save_images(dir_path, file_paths, save_dir, class_names):
         split_path = file_path.split("/")
         class_name = split_path[-2]
         image_name = split_path[-1]
-        save_file_path = os.path.join(
-            save_dir, class_name, image_name
-        )
+        save_file_path = os.path.join(save_dir, class_name, image_name)
         shutil.copy(file_path, save_file_path)
 
 
@@ -133,11 +143,8 @@ def get_data(
 
     class_names = train_data.class_names
 
+    save_images(train_data.file_paths, "data/save_dataset/train", class_names)
     save_images(
-        dir_path, train_data.file_paths, "data/save_dataset/train", class_names
-    )
-    save_images(
-        dir_path,
         validation_data.file_paths,
         "data/save_dataset/validation",
         class_names,
@@ -205,7 +212,6 @@ def main():
         model_parameters.transform_option = "mask"
         model_parameters.img_size = (256, 256)
         dir_for_training = "trainingData"
-
         data_augmentation(model_parameters, dir_for_training)
 
         # Training
