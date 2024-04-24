@@ -106,7 +106,6 @@ def save_images(file_paths, save_dir, class_names):
 
     for classe in class_names:
         os.makedirs(os.path.join(save_dir, classe))
-    print(file_paths)
     for file_path in file_paths:
         split_path = file_path.split("/")
         class_name = split_path[-2]
