@@ -131,6 +131,7 @@ def get_data(
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
+        shuffle=True,
     )
     validation_data = tf.keras.utils.image_dataset_from_directory(
         dir_path,
@@ -139,6 +140,7 @@ def get_data(
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size,
+        shuffle=True,
     )
 
     class_names = train_data.class_names
