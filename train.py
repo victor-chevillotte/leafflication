@@ -87,6 +87,24 @@ def data_augmentation(model_parameters, dir_for_training):
     Utils.display_histogram_terminal(dir_for_training)
 
 
+def save_images(dir_path, file_paths, save_dir, class_names):
+    if os.path.exists(save_dir):
+        shutil.rmtree(save_dir)
+    os.makedirs(save_dir)
+
+    for classe in class_names:
+        os.makedirs(os.path.join(save_dir, classe))
+    print(file_paths)
+    for file_path in file_paths:
+        split_path = file_path.split("/")
+        class_name = split_path[-2]
+        image_name = split_path[-1]
+        save_file_path = os.path.join(
+            save_dir, class_name, image_name
+        )
+        shutil.copy(file_path, save_file_path)
+
+
 def get_data(
     dir_path,
     batch_size,
@@ -113,19 +131,17 @@ def get_data(
         batch_size=batch_size,
     )
 
-    def save_images(dataset, folder_name):
-        os.makedirs(folder_name, exist_ok=True)
-        i = 0
-        for images, _ in dataset.unbatch().batch(1):
-            for image in images:
-                #image = (image.numpy() * 255).astype('uint8')
-                img = Image.fromarray(image)
-                img.save(os.path.join("data/" + folder_name, f'image_{i}.png'))
-                i += 1
+    class_names = train_data.class_names
 
-    # Sauvegarder les images des datasets
-    save_images(train_data, 'train')
-    save_images(validation_data, 'validation')
+    save_images(
+        dir_path, train_data.file_paths, "data/save_dataset/train", class_names
+    )
+    save_images(
+        dir_path,
+        validation_data.file_paths,
+        "data/save_dataset/validation",
+        class_names,
+    )
 
     class_names = train_data.class_names
     print("Class names : ", class_names)
