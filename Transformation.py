@@ -240,7 +240,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     # find the brown color
     mask_brown = cv2.inRange(hsv, (8, 60, 20), (30, 255, 200))
     # find the yellow color in the leaf
-    mask_yellow = cv2.inRange(hsv, (21, 39, 64), (40, 255, 255))
+    mask_yellow = cv2.inRange(hsv, (14, 39, 64), (40, 255, 255))
 
     # find any of the three colors(green or brown or yellow) in the image
     mask = cv2.bitwise_or(mask_green, mask_brown)
@@ -249,11 +249,12 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     image.binary_mask = mask
     image.binary_mask = pcv.fill_holes(bin_img=image.binary_mask)
     blur = pcv.gaussian_blur(
-        img=image.binary_mask, ksize=(5, 5), sigma_x=0
+        img=image.binary_mask, ksize=(11, 11), sigma_x=0
     )
     # Bitwise-AND mask and original image
     # image.mask = cv2.bitwise_and(img, img, mask=image.binary_mask)
     image.blur = blur
+
     image.mask = pcv.apply_mask(
         img=image.img, mask=blur, mask_color="white"
     )
