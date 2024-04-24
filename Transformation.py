@@ -220,18 +220,12 @@ def define_roi(image: PcvImage) -> PcvImage:
 
 
 def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
-    # image.grey_scale = pcv.rgb2gray_cmyk(rgb_img=image.img, channel="c")
-    # image.grey_scale = pcv.rgb2gray_hsv(rgb_img=image.img, channel="h")
+
     image.grey_scale = pcv.rgb2gray_lab(rgb_img=image.img, channel="a")
     image.blur = pcv.gaussian_blur(
         img=image.grey_scale, ksize=(75, 75), sigma_x=0
     )
-    # image.binary_mask = pcv.threshold.otsu(
-    #     gray_img=image.blur, object_type="light"
-    # )
-    # image.binary_mask = pcv.threshold.otsu(
-    #     gray_img=image.blur, object_type="dark"
-    # )
+
     img = image.img
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -251,8 +245,7 @@ def apply_transformation(image: PcvImage, config: Config) -> PcvImage:
     blur = pcv.gaussian_blur(
         img=image.binary_mask, ksize=(11, 11), sigma_x=0
     )
-    # Bitwise-AND mask and original image
-    # image.mask = cv2.bitwise_and(img, img, mask=image.binary_mask)
+
     image.blur = blur
 
     image.mask = pcv.apply_mask(
